@@ -88,7 +88,7 @@ def git_push():
     os.chdir(GIT_PATH)
 
     # Do git pull
-    run_cmd(GIT_CMD + " checkout Develop")
+    #run_cmd(GIT_CMD + " checkout Develop")
     run_cmd(GIT_CMD + " pull")
 
     cur_day = datetime.today().weekday()
