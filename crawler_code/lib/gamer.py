@@ -163,7 +163,6 @@ def crawl_gamer(debug_mode, main_logger):
     top_dir = cur_directory + '/gamer'
     create_folder(top_dir)
 
-    if debug_mode:
-        filePtr = open(top_dir + '/gamer.json', 'w')
-        filePtr.write(json_str)
-        filePtr.close()
+    filePtr = open(top_dir + '/gamer.json', 'w')
+    filePtr.write(json_str)
+    filePtr.close()
