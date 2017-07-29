@@ -172,10 +172,9 @@ def crawl_maplestage(debug_mode, main_logger):
             top_dir = cur_directory + '/maplestage'
             create_folder(top_dir)
 
-            if debug_mode:
-                filePtr = open(top_dir + '/' + site_type + '_' + site_name + '.json', 'w')
-                filePtr.write(json_str)
-                filePtr.close()
+            filePtr = open(top_dir + '/' + site_type + '_' + site_name + '.json', 'w')
+            filePtr.write(json_str)
+            filePtr.close()
             #break
         except Exception as e: 
             exc_type, exc_obj, exc_tb = sys.exc_info()

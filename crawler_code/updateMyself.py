@@ -45,7 +45,7 @@ def run_cmd(cmd_str):
 
     return output
 
-def setup_logger(logger_name, log_file, level=logging.INFO):
+def setup_logger(logger_name, log_file, level=logging.DEBUG):
     l = logging.getLogger(logger_name)
     formatter = logging.Formatter(fmt='%(asctime)s\t%(levelname)s\t%(message)s', datefmt = "%Y-%m-%d %H:%M:%S")
     fileHandler = logging.FileHandler(log_file, mode='a')
@@ -124,7 +124,7 @@ def git_push():
 MAIN BLOCK
 '''
 create_folder(TMP_DIR_PATH)
-main_logger = setup_logger('main_builder_logging', MAIN_LOG_PATH, level = logging.DEBUG if debug_mode else logging.INFO)
+main_logger = setup_logger('main_builder_logging', MAIN_LOG_PATH, level = logging.INFO)
 
 if not debug_mode:
     git_push()
