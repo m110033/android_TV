@@ -1,14 +1,18 @@
 package com.example.wind.mycomic;
 
+import android.annotation.TargetApi;
 import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.graphics.Bitmap;
+import android.os.Build;
 import android.os.Bundle;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.webkit.JavascriptInterface;
+import android.webkit.WebResourceRequest;
+import android.webkit.WebResourceResponse;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 
@@ -16,6 +20,10 @@ import com.example.wind.mycomic.utils.PlayMovie;
 import com.example.wind.mycomic.utils.VideoEnabledWebChromeClient;
 import com.example.wind.mycomic.utils.VideoEnabledWebView;
 
+import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLConnection;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -28,6 +36,7 @@ public class CustomWebView extends Activity {
     private VideoEnabledWebChromeClient webChromeClient;
     private PlayMovie mPlayMovie;
     private ProgressDialog progressBar;
+    private static int hcount = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -101,8 +110,9 @@ public class CustomWebView extends Activity {
         webView.setWebViewClient(new InsideWebViewClient());
 
         // Navigate anywhere you want, but consider that this classes have only been tested on YouTube's mobile site
+        //video_url = "http://tx.acgvideo.com/1/27/16828499-1-hd.mp4?txTime=1501478086&platform=pc&txSecret=588d44b30ee21077932804b9468774f4&oi=998213733&rate=1280000&hfb=b99ffc3c5c68f00a33123bb25f882d5b";
         webView.loadUrl(video_url);
-        progressBar = ProgressDialog.show(CustomWebView.this, "自動跳轉解析", "讀取中...");
+        //progressBar = ProgressDialog.show(CustomWebView.this, "自動跳轉解析", "讀取中...");
 /*
         webview.getSettings().setJavaScriptEnabled(true);
         webview.addJavascriptInterface(new MyJavaScriptInterface(this), "HtmlViewer");
@@ -144,7 +154,35 @@ public class CustomWebView extends Activity {
 
     private class InsideWebViewClient extends WebViewClient {
         private boolean isRedirected;
+        /*
+        @TargetApi(Build.VERSION_CODES.LOLLIPOP)
+        @Override
+        public WebResourceResponse shouldInterceptRequest(WebView view, WebResourceRequest request) {
+            if (request != null && request.getUrl() != null && request.getMethod().equalsIgnoreCase("get")) {
+                String scheme = request.getUrl().getScheme().trim();
+                if (scheme.equalsIgnoreCase("http") || scheme.equalsIgnoreCase("https")) {
+                    try {
+                        URL url = new URL(request.getUrl().toString());
+                        URLConnection connection = url.openConnection();
+                        connection.setRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/62.0.3169.0 Safari/537.36");
 
+                        if (hcount == 0) {
+                            connection.setRequestProperty("Referer", "http://bangumi.bilibili.com/anime/5998/play#103898");
+                            hcount = hcount + 1;
+                        } else {
+                            connection.setRequestProperty("Referer", request.getUrl().toString());
+                        }
+                        return new WebResourceResponse(connection.getContentType(), connection.getHeaderField("encoding"), connection.getInputStream());
+                    } catch (MalformedURLException e) {
+                        e.printStackTrace();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+            return null;
+        }
+        */
         @Override
         // Force links to be opened inside WebView and not in Default Browser
         // Thanks http://stackoverflow.com/a/33681975/1815624

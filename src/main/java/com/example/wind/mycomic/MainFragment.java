@@ -194,6 +194,17 @@ public class MainFragment extends BrowseFragment {
         mRowsAdapter = new ArrayObjectAdapter(new ListRowPresenter());
         CardPresenter cardPresenter = new CardPresenter();
 
+        /*
+        String cid = "10186429";
+        String appkey = "84956560bc028eb7";
+        String secret = "94aba54af9065f71de72f5508f1cd42e";
+        Long tsLong = System.currentTimeMillis()/1000;
+        String ts = tsLong.toString();
+        String para = "appkey=" + appkey + "&cid=" + cid + "&otype=json&quality=2&type=mp4";
+        String sign = ShareDataClass.getInstance().md5(para + secret);
+        String api = "http://interface.bilibili.com/playurl?" + para + "&sign=" + sign;
+        */
+
         //初始化
         ShareDataClass.getInstance().movieMaxHiits.clear();
         ShareDataClass.getInstance().movieList.clear();
@@ -220,7 +231,7 @@ public class MainFragment extends BrowseFragment {
         }
 
         // Get sort list
-        String jsonStr = ShareDataClass.getInstance().GetHttps("https://raw.githubusercontent.com/m110033/android_TV/Develop/video_site/word_code.json");
+        String jsonStr = ShareDataClass.getInstance().GetHttps("https://raw.githubusercontent.com/m110033/android_TV/master/video_site/word_code.json");
         Gson gson = new Gson();
         WordSite wordSite = gson.fromJson(jsonStr, WordSite.class);
 

@@ -19,6 +19,8 @@ import java.net.HttpCookie;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -30,16 +32,16 @@ import java.util.Map;
 
 public class ShareDataClass {
     public static String[] site_json_list = {
-            "https://raw.githubusercontent.com/m110033/android_TV/Develop/video_site/debug/myself/online_comic.json",
-            "https://raw.githubusercontent.com/m110033/android_TV/Develop/video_site/debug/myself/end_comic.json",
-            "https://raw.githubusercontent.com/m110033/android_TV/Develop/video_site/debug/gamer/gamer.json",
-            "https://raw.githubusercontent.com/m110033/android_TV/Develop/video_site/debug/maplestage/drama_tw.json",
-            "https://raw.githubusercontent.com/m110033/android_TV/Develop/video_site/debug/maplestage/drama_cn.json",
-            "https://raw.githubusercontent.com/m110033/android_TV/Develop/video_site/debug/maplestage/drama_kr.json",
-            "https://raw.githubusercontent.com/m110033/android_TV/Develop/video_site/debug/maplestage/drama_ot.json",
-            "https://raw.githubusercontent.com/m110033/android_TV/Develop/video_site/debug/maplestage/variety_tw.json",
-            "https://raw.githubusercontent.com/m110033/android_TV/Develop/video_site/debug/maplestage/variety_cn.json",
-            "https://raw.githubusercontent.com/m110033/android_TV/Develop/video_site/debug/maplestage/variety_tw.json",
+            "https://raw.githubusercontent.com/m110033/android_TV/master/video_site/myself/online_comic.json",
+            "https://raw.githubusercontent.com/m110033/android_TV/master/video_site/myself/end_comic.json",
+            "https://raw.githubusercontent.com/m110033/android_TV/master/video_site/gamer/gamer.json",
+            "https://raw.githubusercontent.com/m110033/android_TV/master/video_site/maplestage/drama_tw.json",
+            "https://raw.githubusercontent.com/m110033/android_TV/master/video_site/maplestage/drama_cn.json",
+            "https://raw.githubusercontent.com/m110033/android_TV/master/video_site/maplestage/drama_kr.json",
+            "https://raw.githubusercontent.com/m110033/android_TV/master/video_site/maplestage/drama_ot.json",
+            "https://raw.githubusercontent.com/m110033/android_TV/master/video_site/maplestage/variety_tw.json",
+            "https://raw.githubusercontent.com/m110033/android_TV/master/video_site/maplestage/variety_cn.json",
+            "https://raw.githubusercontent.com/m110033/android_TV/master/video_site/maplestage/variety_tw.json",
     };
 
     public static String[] site_name_list = {
@@ -263,7 +265,7 @@ public class ShareDataClass {
 
             if (code == 200 || code == 301) {
                 try {
-                    cookieMap.clear();
+                    //cookieMap.clear();
 
                     //Get Cookie
                     Map<String, List<String>> headerFields = connection.getHeaderFields();
@@ -303,5 +305,30 @@ public class ShareDataClass {
         } finally {
             return result;
         }
+    }
+
+    public String md5(final String s) {
+        final String MD5 = "MD5";
+        try {
+            // Create MD5 Hash
+            MessageDigest digest = java.security.MessageDigest
+                    .getInstance(MD5);
+            digest.update(s.getBytes());
+            byte messageDigest[] = digest.digest();
+
+            // Create Hex String
+            StringBuilder hexString = new StringBuilder();
+            for (byte aMessageDigest : messageDigest) {
+                String h = Integer.toHexString(0xFF & aMessageDigest);
+                while (h.length() < 2)
+                    h = "0" + h;
+                hexString.append(h);
+            }
+            return hexString.toString();
+
+        } catch (NoSuchAlgorithmException e) {
+            e.printStackTrace();
+        }
+        return "";
     }
 }

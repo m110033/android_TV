@@ -100,13 +100,16 @@ public class VideoDetailsFragment extends DetailsFragment {
                     String page_url = mSelectedMovie.getVideoPage();
                     SitePageParser sitePageParser = new SitePageParser();
                     videoMoviesList = sitePageParser.doParser(page_url, mSelectedMovie);
+                    ShareDataClass.getInstance().playMovieList.clear();
                     for(int i = 0; i < videoMoviesList.size(); i++) {
                         PlayMovie playMovie = new PlayMovie();
-                        SiteMovie siteMovie = videoMoviesList.get(i).getSiteMovieList().get(0); // For those video only have one site.
-                        playMovie.setVideo_title(siteMovie.getSiteName());
-                        playMovie.setVideo_url(siteMovie.getSiteLink());
-                        playMovie.setMovie_categoryIndex(mSelectedMovie.getCategoryIndex());
-                        ShareDataClass.getInstance().playMovieList.add(playMovie);
+                        if (videoMoviesList.get(i).getSiteMovieList().size() > 0) {
+                            SiteMovie siteMovie = videoMoviesList.get(i).getSiteMovieList().get(0); // For those video only have one site.
+                            playMovie.setVideo_title(siteMovie.getSiteName());
+                            playMovie.setVideo_url(siteMovie.getSiteLink());
+                            playMovie.setMovie_categoryIndex(mSelectedMovie.getCategoryIndex());
+                            ShareDataClass.getInstance().playMovieList.add(playMovie);
+                        }
                     }
                 }
             });
@@ -298,28 +301,39 @@ public class VideoDetailsFragment extends DetailsFragment {
                     {
                         public void onClick(DialogInterface dialog, int index) {
                             String target_url = videoMovie.getSiteMovieList().get(index).getSiteLink();
+                            //Intent viewIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(target_url));
+                            //if (null != viewIntent.resolveActivity(getActivity().getPackageManager())) {
+                            //    startActivity(viewIntent);
+                            //}
+                            ShareDataClass.getInstance().playMovieList = new ArrayList<PlayMovie>();
+                            PlayMovie playMovie = new PlayMovie();
+                            playMovie.setMovie_category(mSelectedMovie.getCategory());
+                            playMovie.setMovie_categoryIndex(mSelectedMovie.getCategoryIndex());
+                            playMovie.setVideo_intro(mSelectedMovie.getDescription());
+                            playMovie.setVideo_title(videoMovie.getVideoTitle());
+                            playMovie.setVideo_url(target_url);
+                            playMovie.setVideo_img(mSelectedMovie.getCardImageUrl());
+                            playMovie.setVideo_img_Uri(mSelectedMovie.getCardImageURI());
+                            playMovie.setTruly_link("");
+                            playMovie.setMovie_title(mSelectedMovie.getTitle());
+                            ShareDataClass.getInstance().playMovieList.add(playMovie);
+
+                            Intent intent = new Intent(getActivity(), PlaybackOverlayActivity.class);
+                            intent.putExtra(DetailsActivity.MOVIE_CATEGORY, mSelectedMovie.getCategory());
+                            intent.putExtra(DetailsActivity.MOVIE_UUID, mSelectedMovie.getUUID());
+                            intent.putExtra(DetailsActivity.PLAY_MOVIE_INDEX, "0");
+                            startActivity(intent);
                             /*
-                            Intent viewIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(target_url));
-                            if (null != viewIntent.resolveActivity(getActivity().getPackageManager())) {
-                                startActivity(viewIntent);
-                            }
-                            */
                             Intent intent = new Intent(getActivity(), CustomWebView.class);
                             intent.putExtra(DetailsActivity.MOVIE_VIDEO_PAGE_URL, target_url);
                             startActivity(intent);
+                            */
                         }
                     };
 
                     String[] optionsArr = options.toArray(new String[0]);
                     alertDialog.setItems(optionsArr, ListClick);
                     alertDialog.show();
-                    /*
-                    Intent intent = new Intent(getActivity(), CustomWebView.class);
-                    intent.putExtra(DetailsActivity.MOVIE_CATEGORY, mSelectedMovie.getCategory());
-                    intent.putExtra(DetailsActivity.MOVIE_UUID, mSelectedMovie.getUUID());
-                    intent.putExtra(DetailsActivity.PLAY_MOVIE_INDEX, video_index);
-                    startActivity(intent);
-                    */
                 } else if (mSelectedMovie.getCategoryIndex() == 2) {
                     Intent intent = new Intent(getActivity(), PlaybackOverlayActivity.class);
                     intent.putExtra(DetailsActivity.MOVIE_CATEGORY, mSelectedMovie.getCategory());

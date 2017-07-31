@@ -6,9 +6,13 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Map;
+import java.util.TreeMap;
 
 /**
  * Created by wind on 2017/7/20.
@@ -36,6 +40,9 @@ public class VideoSiteParser {
             case "html":
                 break;
             default:
+                if (url.matches("^(http|https|ftp)://docs.google.com/.*")) {
+                    final_video_url = youtubeParser(url);
+                }
                 break;
         }
 
@@ -44,7 +51,7 @@ public class VideoSiteParser {
 
     private String youtubeParser(String url) {
         String video_url = "";
-        HashMap<Integer, String> video_url_map = new HashMap<Integer, String>();
+        Map<Integer, String> video_url_map = new TreeMap<Integer, String>();
 
         String fmtPrefs = "22,35,18,34,6,5";
         String[] formats = fmtPrefs.split(",");
@@ -54,7 +61,11 @@ public class VideoSiteParser {
             {"\\\"url_encoded_fmt_stream_map\\\":\\\"", "\\\""},
             {"\\\"url_encoded_fmt_stream_map\\\": \\\"", "\\\""},
             {"\\\"url_encoded_fmt_stream_map\\\",\\\"", "\\\""},
-            {"\\\"url_encoded_fmt_stream_map\\\", \\\"", "\\\""}
+            {"\\\"url_encoded_fmt_stream_map\\\", \\\"", "\\\""},
+            {"\"url_encoded_fmt_stream_map\":\"", "\""},
+            {"\"url_encoded_fmt_stream_map\": \"", "\""},
+            {"\"url_encoded_fmt_stream_map\",\"", "\""},
+            {"\"url_encoded_fmt_stream_map\", \"", "\""}
         };
 
         String[] urlList = null;
@@ -79,7 +90,12 @@ public class VideoSiteParser {
                     String cur_format = formats[j];
                     if (i_tag.compareTo(cur_format) == 0) {
                         truly_url = ShareDataClass.getInstance().str_between(truly_url, "url=", "&").trim();
-                        video_url_map.put(j,  truly_url);
+                        try {
+                            truly_url = URLDecoder.decode(truly_url, "UTF-8");
+                        } catch (UnsupportedEncodingException e) {
+                            e.printStackTrace();
+                        }
+                        video_url_map.put(j, truly_url);
                         break;
                     }
                 }
@@ -87,7 +103,7 @@ public class VideoSiteParser {
         }
 
         if (video_url_map.size() > 0) {
-            video_url = video_url_map.entrySet().iterator().next().getValue();
+            video_url = ((Map.Entry<Integer, String>)video_url_map.entrySet().iterator().next()).getValue();
         }
 
         return video_url;

@@ -7,6 +7,7 @@ import android.media.MediaPlayer;
 import android.media.session.MediaController;
 import android.media.session.MediaSession;
 import android.media.session.PlaybackState;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
@@ -25,6 +26,7 @@ import com.example.wind.mycomic.siteParser.VideoSiteParser;
 import com.example.wind.mycomic.utils.PlayMovie;
 
 import java.lang.reflect.Field;
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -162,7 +164,38 @@ public class PlaybackController {
                             duration = (int) ShareDataClass.getInstance().getDuration(truly_url);
                         }
                         mStartTimeMillis = 0;
-                        mVideoView.setVideoPath(truly_url);
+
+                        /* for blibli
+                        String cid = "10186429";
+                        String video_url = "http://www.bilibili.tv/video/av" + cid;
+                        String appkey = "84956560bc028eb7";
+                        String secret = "94aba54af9065f71de72f5508f1cd42e";
+                        Long tsLong = System.currentTimeMillis()/1000;
+                        String ts = tsLong.toString();
+                        String para = "appkey=" + appkey + "&cid=" + cid + "&otype=json&quality=2&type=mp4";
+                        String sign = ShareDataClass.getInstance().md5(para + secret);
+                        String api = "http://interface.bilibili.com/playurl?" + para + "&sign=" + sign;
+                        truly_url = "http://tx.acgvideo.com/1/27/16828499-1-hd.mp4?txTime=1501478086&platform=pc&txSecret=588d44b30ee21077932804b9468774f4&oi=998213733&rate=1280000&hfb=b99ffc3c5c68f00a33123bb25f882d5b";
+                        Map<String, String> headerMap = new HashMap<String, String>();
+                        headerMap.put("User-Agent", "Mozilla/5.0 (Windows NT 10.0; WOW64; rv:51.0) Gecko/20100101 Firefox/51.0");
+                        headerMap.put("Referer", "http://bangumi.bilibili.com/anime/5998/play#103898");
+                        try {
+                            Field field = VideoView.class.getDeclaredField("mHeaders");
+                            field.setAccessible(true);
+                            field.set(mVideoView,  headerMap);
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                        mVideoView.setVideoURI(Uri.parse(truly_url), headerMap);
+                        */
+
+                        if (ShareDataClass.getInstance().cookieMap.size() > 0) {
+                            Map<String, String> headers = new HashMap<String, String>();
+                            mVideoView.setVideoURI(Uri.parse(truly_url), ShareDataClass.getInstance().cookieMap);
+                        } else {
+                            mVideoView.setVideoPath(truly_url);
+                        }
+
                         PlayMovie movie = mItems.get(getCurrentItem());
                         if(movie.getDuration() == 0) {
                             movie.setDuration(duration);
@@ -211,37 +244,10 @@ public class PlaybackController {
                             @Override
                             public void run() {
                                 final String page_url = handlePlayMove.getVideo_url();
-                                String final_url = page_url;
                                 String cur_video_url = page_url.substring(0, page_url.indexOf("preview"));
-                                String video_html = ShareDataClass.getInstance().GetHttps(cur_video_url);
-                                String fmt_stream_str = ShareDataClass.getInstance().str_between(video_html, "fmt_stream_map\",\"", "\"]");
-                                fmt_stream_str = ShareDataClass.getInstance().decode(fmt_stream_str);
-                                Map<Integer, Integer> resolution_map = new HashMap<Integer, Integer>();
-                                resolution_map.put(22, 1);
-                                resolution_map.put(35, 2);
-                                resolution_map.put(59, 3);
-                                resolution_map.put(18, 4);
-                                resolution_map.put(34, 5);
-                                String[] url = fmt_stream_str.split(",");
-                                int target_resolution = 6;
-                                for (int i = 0; i < url.length; i++) {
-                                    String v_tag = url[i].split("\\|")[0];
-                                    String v_url = url[i].split("\\|")[1];
-                                    if (resolution_map.get(Integer.parseInt(v_tag)) < target_resolution) {
-                                        target_resolution = resolution_map.get(Integer.parseInt(v_tag));
-                                        final_url = v_url;
-                                    }
-                                }
-                                try {
-                                    Field field = VideoView.class.getDeclaredField("mHeaders");
-                                    field.setAccessible(true);
-                                    field.set(mVideoView,  ShareDataClass.getInstance().cookieMap);
-                                } catch (Exception e) {
-                                    e.printStackTrace();
-                                }
-
-                                final_url = cur_video_url;
-                                handlePlayMove.setTruly_link(final_url);
+                                VideoSiteParser videoSiteParser = new VideoSiteParser();
+                                String truly_video_link = videoSiteParser.doParser(cur_video_url, "");
+                                handlePlayMove.setTruly_link(truly_video_link);
                                 Message m = new Message();
                                 m.what = THREAD_LOADING_MOVIE_FINISH;
                                 playMovieHandler.sendMessage(m);

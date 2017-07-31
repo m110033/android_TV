@@ -24,6 +24,7 @@ public class Maplestage {
             @Override
             public void run() {
             String html = ShareDataClass.getInstance().GetHttps(url);
+            html = html.replace("&amp;", "&");
             String dataObj = ShareDataClass.getInstance().str_between(html, "var pageData = ", ";");
             try {
                 JSONObject movieJsonObj = new JSONObject(dataObj);

@@ -110,8 +110,9 @@ public class SitePageParser {
 
     private ArrayList<VideoMovie> mapleStageParser(String url, Movie movie) {
         String title = movie.getTitle();
-        title = title.substring(0, title.indexOf("/")).trim();
-
+        if (title.indexOf("/") >= 0) {
+            title = title.substring(0, title.indexOf("/")).trim();
+        }
         String query_header = "{\"queries\":[{\"name\":\"episodes\",\"query\":{\"sort\":\"top\",\"take\":100,";
         String query_footer = "}}]}";
         String query_data = query_header + "\"type\":\"" + movie.getType() + "\",\"slug\":\"" + title + "\"" + query_footer;

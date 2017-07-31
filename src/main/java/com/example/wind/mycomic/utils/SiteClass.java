@@ -221,7 +221,11 @@ public class SiteClass {
             @Override
             public void run() {
                 String fileName = url.substring(url.lastIndexOf('/') + 1);
-                fileName = fileName.substring(0, fileName.indexOf("_"));
+                if (fileName.indexOf("_") >= 0) {
+                    fileName = fileName.substring(0, fileName.indexOf("_"));
+                } else if (fileName.indexOf(".") >= 0) {
+                    fileName = fileName.substring(0, fileName.indexOf("."));
+                }
                 String jsonStr = ShareDataClass.getInstance().GetHttps(url);
                 Gson gson = new Gson();
                 MovieSite movieSite = gson.fromJson(jsonStr, MovieSite.class);
