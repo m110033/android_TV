@@ -4,7 +4,7 @@ import os
 CP_CMD = "/bin/cp"
 GIT_CMD = "/bin/git"
 
-GIT_PATH = "/mnt/edisk/git/android_TV"
+GIT_PATH = "/mnt/edisk/disk2/git/android_TV"
 MAIN_LOG_NAME = "crawler.log"
 TMP_DIR_PATH = GIT_PATH + "/crawler_code/logs"
 MAIN_LOG_PATH = TMP_DIR_PATH + "/" + MAIN_LOG_NAME
