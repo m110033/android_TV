@@ -46,6 +46,15 @@ def crawl_maplestage(debug_mode, main_logger):
         movie_obj = movie_class()
         
         try:
+            '''
+            POST:
+                http://maplestage.com/v1/query
+            HEADERS:
+                User-Agent: Mozilla/5.0
+                Content-Type: application/json
+            PARAMS:
+                {"queries":[{"name":"shows","query":{"sort":"top","take":99999,"type":"variety","region":"tw"}}]}
+            '''
             req = urllib2.Request('http://maplestage.com/v1/query', query_data, {'User-Agent': 'Mozilla/5.0', 'Content-Type': 'application/json'})
             response = urllib2.urlopen(req)
             html = response.read()

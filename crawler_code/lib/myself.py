@@ -11,8 +11,6 @@ from movieClass import movie_class
 from movieDetailClass import movie_detail_class
 from common.request import create_opener
 
-movie_obj = movie_class()
-movie_detail_obj = movie_detail_class()
 today_date = datetime.now().strftime("%Y-%m-%d")
 
 comic_type = ['online_comic', 'end_comic']
@@ -25,11 +23,14 @@ def crawl_myself(debug_mode, main_logger):
             cur_directory = DEBUG_SITE
         else:
             cur_directory = STORE_SITE
-
+        
         cur_comic_type = comic_type[index]
         cur_comic_prefix_link = comic_prefix_link[index]
 
         video_url = cur_comic_prefix_link + '1.html'
+
+        movie_obj = movie_class()
+        movie_detail_obj = movie_detail_class()
 
         # Get source
         opener = create_opener()
