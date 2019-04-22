@@ -1,10 +1,11 @@
 #-*- coding: UTF-8 -*-
 import os
 import json
+import collections
 
 class movie_class:
     def __init__(self):
-        self.movie_obj = { 'movies': [] }
+        self.movie_obj = collections.OrderedDict({ 'movies': [] })
         pass
 
     def addMovie(self, movie_title, movie_image, movie_page_link, movie_second_title):
