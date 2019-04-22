@@ -29,9 +29,11 @@ public class SitePageParser {
             if (domain.indexOf("myself-bbs") >= 0) {
                 result_movie_list = myselfParser(i_url, movie);
             } else if (domain.indexOf("gamer") >= 0) {
-                result_movie_list = gamerfParser(i_url, movie);
+                result_movie_list = gamerParser(i_url, movie);
             } else if (domain.indexOf("maplestage") >= 0) {
                 result_movie_list = mapleStageParser(i_url, movie);
+            } else if (domain.indexOf("anime1.me") >= 0) {
+                result_movie_list = anime1Parser(i_url, movie);
             }
         } catch (MalformedURLException e) {
             e.printStackTrace();
@@ -42,7 +44,7 @@ public class SitePageParser {
     }
 
     private ArrayList<VideoMovie> myselfParser(String url, Movie movie) {
-        String html = ShareDataClass.getInstance().GetHttps(url);
+        String html = ShareDataClass.getInstance().GetHttps(url, false);
         String intro = ShareDataClass.getInstance().str_between(html, "<div id=\"info_introduction_text\" style=\"display:none;\">", "</div>");
         movie.setDescription(intro);
 
@@ -65,7 +67,7 @@ public class SitePageParser {
                     String video_site_class = matcher.group(2).trim();
                     String video_site_name = matcher.group(3).trim();
                     video_site_name = ShareDataClass.getInstance().stripHtml(video_site_name);
-                    if (video_site_class.compareTo("various fancybox.iframe google") == 0) {
+                    if (video_site_name.compareTo("站內") == 0) {
                         siteMovie.setSiteName(video_site_name);
                         siteMovie.setSiteLink(video_site_link);
                         videoMovie.setSiteMovieList(siteMovie);
@@ -80,8 +82,8 @@ public class SitePageParser {
         return videoMoviesList;
     }
 
-    private ArrayList<VideoMovie> gamerfParser(String url, Movie movie) {
-        String html = ShareDataClass.getInstance().GetHttps(url);
+    private ArrayList<VideoMovie> gamerParser(String url, Movie movie) {
+        String html = ShareDataClass.getInstance().GetHttps(url, false);
         String htmlCode = ShareDataClass.getInstance().str_between(html, "<div class=\"anime_name\">", "<div class=\"link\">");
         String intro = ShareDataClass.getInstance().str_between(htmlCode, "<div class='data_intro'>", "<div class=\"link\">").trim();
         intro = ShareDataClass.getInstance().stripHtml(intro);
@@ -115,8 +117,18 @@ public class SitePageParser {
         }
         String query_header = "{\"queries\":[{\"name\":\"episodes\",\"query\":{\"sort\":\"top\",\"take\":100,";
         String query_footer = "}}]}";
-        String query_data = query_header + "\"type\":\"" + movie.getType() + "\",\"slug\":\"" + title + "\"" + query_footer;
+        String query_data = query_header + "\"type\":\"" + ShareDataClass.getInstance().site_name_to_type.get(movie.getType()) + "\",\"slug\":\"" + title + "\"" + query_footer;
         String html = ShareDataClass.getInstance().PostHttps("http://maplestage.com/v1/query", query_data, "application/json");
+
+        /*
+        * POST:
+            http://maplestage.com/v1/query
+        HEADER:
+            Content-Type: application/json
+            Host: maplestage.com
+        PARAMS:
+            {"queries":[{"name":"episodes","query":{"sort":"top","take":100,"type":"楓林網 - 台灣戲劇","slug":"1989一念間(愛上不能愛的人)"}}]}
+        * */
 
         // Get all video
         ArrayList<VideoMovie> videoMoviesList = new ArrayList<VideoMovie>();
@@ -138,6 +150,30 @@ public class SitePageParser {
             }
         } catch (JSONException e) {
             e.printStackTrace();
+        }
+
+        return videoMoviesList;
+    }
+
+    private ArrayList<VideoMovie> anime1Parser(String url, Movie movie) {
+        String html = ShareDataClass.getInstance().GetHttps(url, false);
+        String videoHtml = ShareDataClass.getInstance().str_between(html, "<main id=\"main\"", "</main>");
+        movie.setDescription("");
+        // Get all video
+        ArrayList<VideoMovie> videoMoviesList = new ArrayList<VideoMovie>();
+        Pattern pattern = Pattern.compile("<h2 class=\"entry-title\"><a href=\"(.+?)\".*?\">(.+?)</a></h2>");
+        Matcher matcher = pattern.matcher(videoHtml);
+
+        while (matcher.find()) {
+            VideoMovie videoMovie = new VideoMovie();
+            SiteMovie siteMovie = new SiteMovie();
+            String video_url = matcher.group(1).trim();
+            String video_title = matcher.group(2).trim();
+            siteMovie.setSiteName("anime1");
+            siteMovie.setSiteLink(video_url);
+            videoMovie.setSiteMovieList(siteMovie);
+            videoMovie.setVideoTitle(video_title);
+            videoMoviesList.add(videoMovie);
         }
 
         return videoMoviesList;

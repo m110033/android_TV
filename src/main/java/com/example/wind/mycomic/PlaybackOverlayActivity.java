@@ -31,7 +31,6 @@ public class PlaybackOverlayActivity extends Activity {
 
     private VideoView mVideoView;
     private PlayMovie mPlayMovie;
-    private int mCurrentItem;
 
     private PlaybackController mPlaybackController;
 
@@ -57,9 +56,8 @@ public class PlaybackOverlayActivity extends Activity {
         String movie_uuid = (String) getIntent().getSerializableExtra(DetailsActivity.MOVIE_UUID);
         String video_index = (String) getIntent().getSerializableExtra(DetailsActivity.PLAY_MOVIE_INDEX);
 
-        mCurrentItem = Integer.parseInt(video_index);
-        mPlayMovie = ShareDataClass.getInstance().playMovieList.get(mCurrentItem);
-        mPlaybackController.setCurrentItem(mCurrentItem);
+        mPlaybackController.setCurrentItem(Integer.parseInt(video_index));
+        mPlayMovie = ShareDataClass.getInstance().playMovieList.get(mPlaybackController.getCurrentItem());
 
         setContentView(R.layout.playback_controls);
         mVideoView = (VideoView) findViewById(R.id.videoView);

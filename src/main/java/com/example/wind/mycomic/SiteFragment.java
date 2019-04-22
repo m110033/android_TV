@@ -17,6 +17,7 @@ import android.view.ViewGroup;
 import com.bumptech.glide.Glide;
 import com.example.wind.mycomic.custom.BackgoundTask;
 import com.example.wind.mycomic.custom.CustomImageCardView;
+import com.example.wind.mycomic.service.AppUtils;
 
 
 /**
@@ -38,7 +39,9 @@ public class SiteFragment extends VerticalGridFragment {
 
         backgoundTask = new BackgoundTask(getActivity());
 
-        setTitle("");
+        Integer versionCode = AppUtils.getVersionCode(this.getActivity().getApplicationContext());
+
+        setTitle("Version: " + versionCode.toString());
         //setBadgeDrawable(getResources().getDrawable(R.drawable.app_icon_your_company));
 
         setupFragment();

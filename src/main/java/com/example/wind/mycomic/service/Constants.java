@@ -16,5 +16,5 @@ class Constants {
 
     static final String TAG = "UpdateChecker";
 
-    static final String UPDATE_URL = "https://raw.githubusercontent.com/m110033/android_TV/master/release/update.json";
+    static final String UPDATE_URL = "https://drive.google.com/uc?export=download&id=1DaRewmSa64us97WN3gAAVA2WMmdU7Be2";
 }

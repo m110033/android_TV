@@ -14,6 +14,7 @@
 
 package com.example.wind.mycomic;
 
+import java.io.IOException;
 import java.net.CookieHandler;
 import java.net.CookieManager;
 import java.util.ArrayList;
@@ -46,8 +47,12 @@ import com.example.wind.mycomic.custom.SpinnerFragment;
 import com.example.wind.mycomic.json.WordCode;
 import com.example.wind.mycomic.json.WordSite;
 import com.example.wind.mycomic.object.Movie;
+import com.example.wind.mycomic.utils.HttpsUtil;
 import com.example.wind.mycomic.utils.SiteClass;
 import com.google.gson.Gson;
+
+import org.json.JSONException;
+import org.json.JSONObject;
 
 public class MainFragment extends BrowseFragment {
     private static final String TAG = "MainFragment";
@@ -194,22 +199,40 @@ public class MainFragment extends BrowseFragment {
         mRowsAdapter = new ArrayObjectAdapter(new ListRowPresenter());
         CardPresenter cardPresenter = new CardPresenter();
 
-        /*
-        String cid = "10186429";
-        String appkey = "84956560bc028eb7";
-        String secret = "94aba54af9065f71de72f5508f1cd42e";
-        Long tsLong = System.currentTimeMillis()/1000;
-        String ts = tsLong.toString();
-        String para = "appkey=" + appkey + "&cid=" + cid + "&otype=json&quality=2&type=mp4";
-        String sign = ShareDataClass.getInstance().md5(para + secret);
-        String api = "http://interface.bilibili.com/playurl?" + para + "&sign=" + sign;
-        */
-
         //初始化
+        if(getActivity() != null) {
+            try {
+                HttpsUtil.ssl_asset_stream = getActivity().getAssets().open("tvapp.cer");
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
         ShareDataClass.getInstance().movieMaxHiits.clear();
         ShareDataClass.getInstance().movieList.clear();
         ShareDataClass.getInstance().playMovieList.clear();
         ShareDataClass.getInstance().movieTypeList.clear();
+
+        // Load proxy site
+        String proxy_json_str = ShareDataClass.getInstance().GetHttps("https://drive.google.com/uc?export=download&id=0B1_1ZUYYMDcreVh6eG5JaXNuaFk", false);
+        JSONObject proxyObj = null;
+        try {
+            proxyObj = new JSONObject(proxy_json_str);
+            ShareDataClass.getInstance().proxy_ip_address = proxyObj.getString("ip_address");
+            ShareDataClass.getInstance().proxy_ip_port = proxyObj.getInt("port");
+            ShareDataClass.getInstance().is_bsite_proxy = proxyObj.getBoolean("enable");
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+        ShareDataClass.getInstance().site_name_to_type.put("楓林網 - 台灣戲劇", "variety");
+        ShareDataClass.getInstance().site_name_to_type.put("楓林網 - 大陸戲劇", "variety");
+        ShareDataClass.getInstance().site_name_to_type.put("楓林網 - 韓國戲劇", "variety");
+        ShareDataClass.getInstance().site_name_to_type.put("楓林網 - 其他戲劇", "variety");
+        ShareDataClass.getInstance().site_name_to_type.put("楓林網 - 台灣綜藝", "drama");
+        ShareDataClass.getInstance().site_name_to_type.put("楓林網 - 大陸綜藝", "drama");
+        ShareDataClass.getInstance().site_name_to_type.put("楓林網 - 韓國綜藝", "drama");
+
+        // ShareDataClass.getInstance().GetHttps("https://bangumi.bilibili.com/player/web_api/playurl?cid=25193625&appkey=84956560bc028eb7&otype=json&type=&quality=80&module=bangumi&qn=80&sign=4e2a1f6341300324ad58b4eb876b0067");
 
         // Want Site
         SiteClass siteClass = new SiteClass();
@@ -231,7 +254,7 @@ public class MainFragment extends BrowseFragment {
         }
 
         // Get sort list
-        String jsonStr = ShareDataClass.getInstance().GetHttps("https://raw.githubusercontent.com/m110033/android_TV/master/video_site/word_code.json");
+        String jsonStr = ShareDataClass.getInstance().GetHttps("https://raw.githubusercontent.com/m110033/android_TV/master/video_site/word_code.json", false);
         Gson gson = new Gson();
         WordSite wordSite = gson.fromJson(jsonStr, WordSite.class);
 

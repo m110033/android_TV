@@ -1,6 +1,7 @@
 package com.example.wind.mycomic;
 
 import android.app.Activity;
+import android.content.Context;
 import android.media.MediaMetadataRetriever;
 import android.os.Build;
 import android.text.Html;
@@ -8,6 +9,7 @@ import android.util.Log;
 
 import com.example.wind.mycomic.object.Movie;
 import com.example.wind.mycomic.object.SiteMovie;
+import com.example.wind.mycomic.utils.HttpsUtil;
 import com.example.wind.mycomic.utils.PlayMovie;
 
 import java.io.BufferedReader;
@@ -17,14 +19,31 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpCookie;
 import java.net.HttpURLConnection;
+import java.net.InetSocketAddress;
+import java.net.Proxy;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
+import java.security.KeyManagementException;
+import java.security.KeyStore;
+import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
+import java.security.UnrecoverableKeyException;
+import java.security.cert.Certificate;
+import java.security.cert.CertificateException;
+import java.security.cert.CertificateFactory;
+import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import javax.net.ssl.HttpsURLConnection;
+import javax.net.ssl.KeyManagerFactory;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLSocketFactory;
+import javax.net.ssl.TrustManagerFactory;
 
 /**
  * Created by wind on 2016/11/19.
@@ -32,16 +51,17 @@ import java.util.Map;
 
 public class ShareDataClass {
     public static String[] site_json_list = {
-            "https://raw.githubusercontent.com/m110033/android_TV/master/video_site/myself/online_comic.json",
-            "https://raw.githubusercontent.com/m110033/android_TV/master/video_site/myself/end_comic.json",
-            "https://raw.githubusercontent.com/m110033/android_TV/master/video_site/gamer/gamer.json",
-            "https://raw.githubusercontent.com/m110033/android_TV/master/video_site/maplestage/drama_tw.json",
-            "https://raw.githubusercontent.com/m110033/android_TV/master/video_site/maplestage/drama_cn.json",
-            "https://raw.githubusercontent.com/m110033/android_TV/master/video_site/maplestage/drama_kr.json",
-            "https://raw.githubusercontent.com/m110033/android_TV/master/video_site/maplestage/drama_ot.json",
-            "https://raw.githubusercontent.com/m110033/android_TV/master/video_site/maplestage/variety_tw.json",
-            "https://raw.githubusercontent.com/m110033/android_TV/master/video_site/maplestage/variety_cn.json",
-            "https://raw.githubusercontent.com/m110033/android_TV/master/video_site/maplestage/variety_tw.json",
+            "https://drive.google.com/uc?export=download&id=0B1_1ZUYYMDcrbGtOX0hHdE5tOGs",
+            "https://drive.google.com/uc?export=download&id=0B1_1ZUYYMDcrbGtEbHZ1RFMtdGc",
+            "https://drive.google.com/uc?export=download&id=0B1_1ZUYYMDcrbFgtTlVnNC1PQUE",
+            "https://drive.google.com/uc?export=download&id=0B1_1ZUYYMDcrbGRYSDEwZ2ljazA",
+            "https://drive.google.com/uc?export=download&id=0B1_1ZUYYMDcrbG0tSWxLNlZpMDQ",
+            "https://drive.google.com/uc?export=download&id=0B1_1ZUYYMDcrbG9fZlpLYzFEMWM",
+            "https://drive.google.com/uc?export=download&id=0B1_1ZUYYMDcrbGF6V2otT09GVmc",
+            "https://drive.google.com/uc?export=download&id=0B1_1ZUYYMDcrbGhuSDJTanc2WWc",
+            "https://drive.google.com/uc?export=download&id=0B1_1ZUYYMDcrbGVENHNOWHRKUkE",
+            "https://drive.google.com/uc?export=download&id=0B1_1ZUYYMDcrbGh3cmt0STA2b2c",
+            "https://drive.google.com/uc?export=download&id=17es2XCOZ4sfieNe75lF3ST-zvNkWeSIF",
     };
 
     public static String[] site_name_list = {
@@ -54,8 +74,11 @@ public class ShareDataClass {
             "楓林網 - 其他戲劇",
             "楓林網 - 台灣綜藝",
             "楓林網 - 大陸綜藝",
-            "楓林網 - 韓國綜藝"
+            "楓林網 - 韓國綜藝",
+            "Anime1",
     };
+
+    public static Map<String, String> site_name_to_type = new HashMap<String, String>();
 
     public static String[] site_img_list = {
             "http://myself-bbs.com/template/yeei_dream1/css/yeei/logo.png",
@@ -67,7 +90,8 @@ public class ShareDataClass {
             "https://pbs.twimg.com/profile_images/696495587110289408/l7IZlrOl.png",
             "https://pbs.twimg.com/profile_images/696495587110289408/l7IZlrOl.png",
             "https://pbs.twimg.com/profile_images/696495587110289408/l7IZlrOl.png",
-            "https://pbs.twimg.com/profile_images/696495587110289408/l7IZlrOl.png"
+            "https://pbs.twimg.com/profile_images/696495587110289408/l7IZlrOl.png",
+            "http://myself-bbs.com/template/yeei_dream1/css/yeei/logo.png"
     };
 
     public static Activity ajax_activity = null;
@@ -79,6 +103,10 @@ public class ShareDataClass {
     public static HashMap<String, ArrayList<Movie>> movieList = new HashMap<String, ArrayList<Movie>>();
     public static Map<String, String> cookieMap = new HashMap<String, String>();
     public static Map<String, Integer> wordDict = new HashMap<String, Integer>();
+    public static String proxy_ip_address = "";
+    public static Integer proxy_ip_port = 80;
+    public boolean is_bsite_proxy = false;
+    public static List<Integer> qualityList = new ArrayList<Integer>();
 
     public String stripHtml(String html) {
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N) {
@@ -236,7 +264,11 @@ public class ShareDataClass {
         return result;
     }
 
-    public String GetHttps(String _url) {
+    public String GetHttps(String _url, Boolean is_proxy) {
+        return GetHttps(_url, is_proxy, null, null);
+    }
+
+    public String GetHttps(String _url, Boolean is_proxy, String refer, String origin) {
         String result = "";
 
         try {
@@ -248,17 +280,39 @@ public class ShareDataClass {
             String link = _url.trim();
             URL url = new URL(link);
 
-            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+            HttpURLConnection connection = null;
+            if (is_proxy) {
+                Proxy proxy = new Proxy(Proxy.Type.HTTP, new InetSocketAddress(proxy_ip_address, proxy_ip_port));
+                connection = (HttpURLConnection) url.openConnection(proxy);
+            } else {
+                connection = (HttpURLConnection) url.openConnection();
+            }
+            connection.setRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/73.0.3683.103 Safari/537.36");
+            if(refer != null) {
+                connection.setRequestProperty("Referer", refer);
+            }
+            if(origin != null) {
+                connection.setRequestProperty("Origin", origin);
+            }
             String redirect = connection.getHeaderField("Location");
             if (redirect != null){
                 URL redirect_url = new URL(redirect);
                 connection = (HttpURLConnection) redirect_url.openConnection();
             }
-
             connection.setReadTimeout(10000);
             connection.setConnectTimeout(15000);
             connection.setRequestMethod("GET");
             connection.connect();
+
+//            if (connection instanceof HttpsURLConnection) {// 判断是否为https请求
+//                SSLContext sslContext = HttpsUtil.getSSLContextWithCer();
+//                // SSLContext sslContext = HttpsUtil.getSSLContextWithoutCer();
+//                if (sslContext != null) {
+//                    SSLSocketFactory sslSocketFactory = sslContext.getSocketFactory();
+//                    ((HttpsURLConnection) connection).setDefaultSSLSocketFactory(sslSocketFactory);
+//                    ((HttpsURLConnection) connection).setHostnameVerifier(HttpsUtil.hostnameVerifier);
+//                }
+//            }
 
             int code = connection.getResponseCode();
             InputStream is = connection.getInputStream();
@@ -298,6 +352,10 @@ public class ShareDataClass {
                         is.close();
                     } catch (Throwable ignore) {
                     }
+                    if (connection != null) {
+                        connection.disconnect();
+                    }
+                    connection = null;
                 }
             }
         } catch (Exception e) {

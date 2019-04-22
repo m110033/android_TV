@@ -23,7 +23,7 @@ public class Maplestage {
         Thread thread = new Thread(new Runnable() {
             @Override
             public void run() {
-            String html = ShareDataClass.getInstance().GetHttps(url);
+            String html = ShareDataClass.getInstance().GetHttps(url, false);
             html = html.replace("&amp;", "&");
             String dataObj = ShareDataClass.getInstance().str_between(html, "var pageData = ", ";");
             try {

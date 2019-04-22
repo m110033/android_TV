@@ -105,9 +105,12 @@ public class VideoDetailsFragment extends DetailsFragment {
                         PlayMovie playMovie = new PlayMovie();
                         if (videoMoviesList.get(i).getSiteMovieList().size() > 0) {
                             SiteMovie siteMovie = videoMoviesList.get(i).getSiteMovieList().get(0); // For those video only have one site.
-                            playMovie.setVideo_title(siteMovie.getSiteName());
+                            playMovie.setMovie_title(mSelectedMovie.getTitle());
+                            playMovie.setVideo_intro(mSelectedMovie.getDescription());
+                            playMovie.setVideo_title(videoMoviesList.get(i).getVideoTitle());
                             playMovie.setVideo_url(siteMovie.getSiteLink());
                             playMovie.setMovie_categoryIndex(mSelectedMovie.getCategoryIndex());
+                            playMovie.setVideo_type(mSelectedMovie.getType());
                             ShareDataClass.getInstance().playMovieList.add(playMovie);
                         }
                     }
@@ -293,8 +296,10 @@ public class VideoDetailsFragment extends DetailsFragment {
 
                     ArrayList<String> options = new ArrayList<String>();
                     for(int i = 0; i < videoMovie.getSiteMovieList().size(); i++) {
+                        String cur_site_link = videoMovie.getSiteMovieList().get(i).getSiteLink();
                         options.add(videoMovie.getSiteMovieList().get(i).getSiteName());
                     }
+
 
                     //建立選擇的事件
                     DialogInterface.OnClickListener ListClick = new DialogInterface.OnClickListener()
@@ -318,16 +323,17 @@ public class VideoDetailsFragment extends DetailsFragment {
                             playMovie.setMovie_title(mSelectedMovie.getTitle());
                             ShareDataClass.getInstance().playMovieList.add(playMovie);
 
-                            Intent intent = new Intent(getActivity(), PlaybackOverlayActivity.class);
-                            intent.putExtra(DetailsActivity.MOVIE_CATEGORY, mSelectedMovie.getCategory());
-                            intent.putExtra(DetailsActivity.MOVIE_UUID, mSelectedMovie.getUUID());
-                            intent.putExtra(DetailsActivity.PLAY_MOVIE_INDEX, "0");
-                            startActivity(intent);
-                            /*
-                            Intent intent = new Intent(getActivity(), CustomWebView.class);
-                            intent.putExtra(DetailsActivity.MOVIE_VIDEO_PAGE_URL, target_url);
-                            startActivity(intent);
-                            */
+                            if (target_url.indexOf("preview") >= 0) {   //google vidoe
+                                Intent intent = new Intent(getActivity(), CustomWebView.class);
+                                intent.putExtra(DetailsActivity.MOVIE_VIDEO_PAGE_URL, target_url);
+                                startActivity(intent);
+                            } else {
+                                Intent intent = new Intent(getActivity(), PlaybackOverlayActivity.class);
+                                intent.putExtra(DetailsActivity.MOVIE_CATEGORY, mSelectedMovie.getCategory());
+                                intent.putExtra(DetailsActivity.MOVIE_UUID, mSelectedMovie.getUUID());
+                                intent.putExtra(DetailsActivity.PLAY_MOVIE_INDEX, "0");
+                                startActivity(intent);
+                            }
                         }
                     };
 
@@ -356,7 +362,6 @@ public class VideoDetailsFragment extends DetailsFragment {
 
                         AlertDialog.Builder alertDialog = new AlertDialog.Builder(new ContextThemeWrapper(getActivity(), R.style.siteDialogTheme));
                         alertDialog.setTitle("請選擇分流");
-
 
                         ArrayList<String> options = new ArrayList<String>();
                         for(int j = 0; j < playSite.getPlayList().size(); j++) {

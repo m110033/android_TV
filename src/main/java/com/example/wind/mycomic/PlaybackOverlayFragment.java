@@ -15,7 +15,9 @@
 package com.example.wind.mycomic;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.drawable.BitmapDrawable;
@@ -23,9 +25,11 @@ import android.graphics.drawable.Drawable;
 import android.media.MediaMetadata;
 import android.media.session.MediaController;
 import android.media.session.PlaybackState;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.os.Message;
 import android.support.v17.leanback.widget.Action;
 import android.support.v17.leanback.widget.ArrayObjectAdapter;
 import android.support.v17.leanback.widget.ClassPresenterSelector;
@@ -41,6 +45,7 @@ import android.support.v17.leanback.widget.PlaybackControlsRowPresenter;
 import android.support.v17.leanback.widget.Presenter;
 import android.support.v17.leanback.widget.Row;
 import android.support.v17.leanback.widget.RowPresenter;
+import android.support.v7.view.ContextThemeWrapper;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -48,13 +53,15 @@ import android.view.ViewGroup;
 
 import com.example.wind.mycomic.custom.PlaybackController;
 import com.example.wind.mycomic.object.Movie;
-import com.example.wind.mycomic.utils.DescriptionPresenter;
 import com.example.wind.mycomic.utils.PlayMovie;
 import com.squareup.picasso.Picasso;
 import com.squareup.picasso.Target;
 
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /*
  * Class for video playback with media control
@@ -69,8 +76,6 @@ public class PlaybackOverlayFragment extends android.support.v17.leanback.app.Pl
     private static final int CARD_HEIGHT = 240;
     private static final boolean SHOW_IMAGE = true;
 
-    private static final int THREAD_LOADING_MOVIE_FINISH = 0;
-
     private static Context sContext;
 
     private PlayMovie mPlayMovie;
@@ -83,8 +88,6 @@ public class PlaybackOverlayFragment extends android.support.v17.leanback.app.Pl
     private PlaybackControlsRow mPlaybackControlsRow;
     private ArrayObjectAdapter mPrimaryActionsAdapter;
     private ArrayObjectAdapter mSecondaryActionsAdapter;
-    private DescriptionPresenter descriptionPresenter;
-    private int mCurrentPlaybackState;
     private Handler mHandler;
     private Runnable mRunnable;
 
@@ -100,17 +103,12 @@ public class PlaybackOverlayFragment extends android.support.v17.leanback.app.Pl
     private PlaybackControlsRow.HighQualityAction mHighQualityAction;
     private PlaybackControlsRow.ClosedCaptioningAction mClosedCaptioningAction;
     private PlaybackControlsRow.MoreActions mMoreActions;
-    private int mCurrentItem;
     private PicassoPlaybackControlsRowTarget mPlaybackControlsRowTarget;
     private PlaybackOverlayActivity activity;
 
     private Movie mSelectedMovie;
     private MediaController mMediaController;
     private MediaController.Callback mMediaControllerCallback = new MediaControllerCallback();
-
-    public PlaybackControlsRow getPlaybackControlsRow() {
-        return mPlaybackControlsRow;
-    }
 
     @Override
     public View onInflateTitleView(LayoutInflater inflater, ViewGroup parent,
@@ -136,15 +134,15 @@ public class PlaybackOverlayFragment extends android.support.v17.leanback.app.Pl
             }
         }
 
-        mCurrentItem = Integer.parseInt(video_index);
-        mPlayMovie = ShareDataClass.getInstance().playMovieList.get(mCurrentItem);
-
         sContext = getActivity();
         activity = (PlaybackOverlayActivity) getActivity();
         mHandler = new Handler(Looper.getMainLooper());
 
         mPlaybackController = activity.getPlaybackController();
         mPlaybackController.setPlaybackOverlayFragment(this);
+        mPlaybackController.setmItems(ShareDataClass.getInstance().playMovieList);
+        mPlaybackController.setCurrentItem(Integer.parseInt(video_index));
+        mPlayMovie = ShareDataClass.getInstance().playMovieList.get(mPlaybackController.getCurrentItem());
 
         setBackgroundType(PlaybackOverlayFragment.BG_LIGHT);
         setFadingEnabled(true);
@@ -221,13 +219,29 @@ public class PlaybackOverlayFragment extends android.support.v17.leanback.app.Pl
 
     private ArrayObjectAdapter mRowsAdapter;
 
+    private static Uri replaceUriParameter(Uri uri, String key, String newValue) {
+        final Set<String> params = uri.getQueryParameterNames();
+        final Uri.Builder newUri = uri.buildUpon().clearQuery();
+        for (String param : params) {
+            String value;
+            if (param.equals(key)) {
+                value = newValue;
+            } else {
+                value = uri.getQueryParameter(param);
+            }
+            newUri.appendQueryParameter(param, value);
+        }
+        if (!params.contains("quality")) {
+            newUri.appendQueryParameter("quality", newValue);
+        }
+        return newUri.build();
+    }
+
     private void setUpRows() {
         ClassPresenterSelector ps = new ClassPresenterSelector();
 
         PlaybackControlsRowPresenter playbackControlsRowPresenter;
-        //playbackControlsRowPresenter = new PlaybackControlsRowPresenter(new DetailsDescriptionPresenter());
-        descriptionPresenter = new DescriptionPresenter();
-        playbackControlsRowPresenter = new PlaybackControlsRowPresenter(descriptionPresenter);
+        playbackControlsRowPresenter = new PlaybackControlsRowPresenter(new DetailsDescriptionPresenter());
 
         ps.addClassPresenter(PlaybackControlsRow.class, playbackControlsRowPresenter);
         ps.addClassPresenter(ListRow.class, new ListRowPresenter());
@@ -263,7 +277,60 @@ public class PlaybackOverlayFragment extends android.support.v17.leanback.app.Pl
                 } else if (action.getId() == mRewindAction.getId()) {
                     /* Rewind action */
                     mMediaController.getTransportControls().rewind();
+                } else if (action.getId() == mHighQualityAction.getId()) {
+                    AlertDialog.Builder alertDialog = new AlertDialog.Builder(new ContextThemeWrapper(getActivity(), R.style.siteDialogTheme));
+                    alertDialog.setTitle("請選擇畫質");
+
+                    final List keys = new ArrayList(mPlaybackController.getVideoSiteDetailMap().keySet());
+
+                    ArrayList<String> options = new ArrayList<String>();
+                    if (mPlayMovie.getMovie_categoryIndex() >= 0 && mPlayMovie.getMovie_categoryIndex() <= 1 && mPlayMovie.getTruly_link().indexOf("blibli") >= 0) {
+                        for (int i = 0; i < ShareDataClass.getInstance().qualityList.size(); i++) {
+                            String video_size_str = ShareDataClass.getInstance().qualityList.get(i).toString();
+                            options.add(video_size_str);
+                        }
+                    } else {
+                        for (int i = 0; i < keys.size(); i++) {
+                            String video_size_str = (String) keys.get(i);
+                            options.add(video_size_str);
+                        }
+                    }
+
+                    //建立選擇的事件
+                    DialogInterface.OnClickListener ListClick = new DialogInterface.OnClickListener()
+                    {
+                        public void onClick(DialogInterface dialog, int index) {
+                            if (mPlayMovie.getMovie_categoryIndex() >= 0 && mPlayMovie.getMovie_categoryIndex() <= 1 && mPlayMovie.getTruly_link().indexOf("blibli") >= 0) {
+                                mPlayMovie = ShareDataClass.getInstance().playMovieList.get(mPlaybackController.getCurrentItem());
+                                String temp_video_url = mPlayMovie.getVideo_url();
+                                temp_video_url = temp_video_url.replace("&amp;", "&");
+                                Uri uri = Uri.parse(temp_video_url);
+                                temp_video_url = replaceUriParameter(uri, "quality", ShareDataClass.getInstance().qualityList.get(index).toString()).toString();
+                                mPlayMovie.setVideo_url(temp_video_url);
+                                mPlayMovie.setTruly_link("");
+                                mPlaybackController.setCurrentItem(0);
+                                // Clear truly video link
+                                for(int i = 0; i < ShareDataClass.getInstance().playMovieList.size(); i++) {
+                                    ShareDataClass.getInstance().playMovieList.get(i).setTruly_link("");
+                                }
+                                mPlaybackController.setVideoPathWithHandle(mPlayMovie);
+                            } else {
+                                String video_link = mPlaybackController.getVideoSiteDetailMap().get(keys.get(index)).getVideo_link();
+                                PlayMovie cur_play_movie = new PlayMovie();
+                                cur_play_movie.setTruly_link(video_link);
+                                int cur_play_index = mPlaybackController.getCurrentItem();
+                                mPlayMovie = ShareDataClass.getInstance().playMovieList.get(mPlaybackController.getCurrentItem());
+                                mPlayMovie.setTruly_link(video_link);
+                                mPlaybackController.setVideoPathWithHandle(mPlayMovie);
+                            }
+                        }
+                    };
+
+                    String[] optionsArr = options.toArray(new String[0]);
+                    alertDialog.setItems(optionsArr, ListClick);
+                    alertDialog.show();
                 }
+
                 if (action instanceof PlaybackControlsRow.MultiAction) {
                     /* Following action is subclass of MultiAction
                      * - PlayPauseAction
@@ -385,7 +452,7 @@ public class PlaybackOverlayFragment extends android.support.v17.leanback.app.Pl
         mSecondaryActionsAdapter.add(mClosedCaptioningAction);
         mSecondaryActionsAdapter.add(mMoreActions);
 
-        //updatePlaybackRow(mCurrentItem);
+        //updatePlaybackRow();
         mPlaybackController.updateMetadata();
     }
 
@@ -399,17 +466,17 @@ public class PlaybackOverlayFragment extends android.support.v17.leanback.app.Pl
         mRowsAdapter.add(new ListRow(header, listRowAdapter));
     }
 
-    private void updatePlaybackRow(int index) {
+    private void updatePlaybackRow() {
         Log.d(TAG, "updatePlaybackRow");
         if (mPlaybackControlsRow.getItem() != null) {
-            mPlayMovie = ShareDataClass.getInstance().playMovieList.get(mCurrentItem);
+            mPlayMovie = ShareDataClass.getInstance().playMovieList.get(mPlaybackController.getCurrentItem());
             if (mPlayMovie != null) {
                 //new ShowSpinnerTask().execute(mPlayMovie);
             }
         }
         if (SHOW_IMAGE) {
             mPlaybackControlsRowTarget = new PicassoPlaybackControlsRowTarget(mPlaybackControlsRow);
-            updateVideoImage(ShareDataClass.getInstance().playMovieList.get(mCurrentItem).getVideo_img());
+            updateVideoImage(ShareDataClass.getInstance().playMovieList.get(mPlaybackController.getCurrentItem()).getVideo_img());
         }
     }
 
@@ -491,7 +558,7 @@ public class PlaybackOverlayFragment extends android.support.v17.leanback.app.Pl
                 Intent intent = new Intent(getActivity(), PlaybackOverlayActivity.class);
                 intent.putExtra(DetailsActivity.MOVIE_CATEGORY, mSelectedMovie.getCategory());
                 intent.putExtra(DetailsActivity.MOVIE_UUID, mSelectedMovie.getUUID());
-                intent.putExtra(DetailsActivity.PLAY_MOVIE_INDEX, mCurrentItem);
+                intent.putExtra(DetailsActivity.PLAY_MOVIE_INDEX, mPlaybackController.getCurrentItem());
                 getActivity().startActivity(intent);
             }
         }
@@ -500,7 +567,6 @@ public class PlaybackOverlayFragment extends android.support.v17.leanback.app.Pl
     private class MediaControllerCallback extends MediaController.Callback {
         @Override
         public void onPlaybackStateChanged(final PlaybackState state) {
-            Log.d(TAG, "playback state changed: " + state.getState());
             Log.d(TAG, "playback state changed: " + state.toString());
             mHandler.post(new Runnable() {
                 @Override
@@ -514,7 +580,7 @@ public class PlaybackOverlayFragment extends android.support.v17.leanback.app.Pl
                         notifyChanged(mPlayPauseAction);
                     } else if (state.getState() == PlaybackState.STATE_PAUSED) {
                         mPlaybackController.setCurrentPlaybackState(PlaybackState.STATE_PAUSED);
-                        // stopProgressAutomation();
+                        stopProgressAutomation();
                         // setFadingEnabled(false);
                         mPlayPauseAction.setIndex(PlaybackControlsRow.PlayPauseAction.PLAY);
                         mPlayPauseAction.setIcon(mPlayPauseAction.getDrawable(PlaybackControlsRow.PlayPauseAction.PLAY));

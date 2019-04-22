@@ -22,17 +22,23 @@ import com.bumptech.glide.request.target.SimpleTarget;
 import com.example.wind.mycomic.PlaybackOverlayFragment;
 import com.example.wind.mycomic.R;
 import com.example.wind.mycomic.ShareDataClass;
+import com.example.wind.mycomic.siteParser.SiteVideoDetail;
 import com.example.wind.mycomic.siteParser.VideoSiteParser;
+import com.example.wind.mycomic.siteParser.m3u8Site;
 import com.example.wind.mycomic.utils.PlayMovie;
 
-import java.lang.reflect.Field;
-import java.net.URI;
+import org.json.JSONObject;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
+import java.util.TreeSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.SortedSet;
 
 /**
  * Created by wind on 2017/1/7.
@@ -50,9 +56,6 @@ public class PlaybackController {
     private MediaSession mSession;
     private MediaSessionCallback mMediaSessionCallback;
     private VideoView mVideoView;
-    private static ArrayList<PlayMovie> mItems =  ShareDataClass.getInstance().playMovieList; // new ArrayList<Movie>();
-
-    /* Global variables */
     private int mCurrentPlaybackState = PlaybackState.STATE_NONE;
     private int mCurrentItem; // index of current item
     private int mPosition = 0;
@@ -61,7 +64,27 @@ public class PlaybackController {
     private static boolean THREAD_IS_LOADING = false;
     private static final int THREAD_LOADING_MOVIE_FINISH = 0;
     private SpinnerFragment mSinnerFragment = new SpinnerFragment();
-    private HashMap<String, Integer> m3u8SegmentsMap;
+
+    /* Global variables */
+    public ArrayList<PlayMovie> mItems; // new ArrayList<Movie>();
+
+    public ArrayList<PlayMovie> getmItems() {
+        return mItems;
+    }
+
+    public void setmItems(ArrayList<PlayMovie> mItems) {
+        this.mItems = mItems;
+    }
+
+    public Map<String, SiteVideoDetail> getVideoSiteDetailMap() {
+        return videoSiteDetailMap;
+    }
+
+    public void setVideoSiteDetailMap(Map<String, SiteVideoDetail> videoSiteDetailMap) {
+        this.videoSiteDetailMap = videoSiteDetailMap;
+    }
+
+    private Map<String, SiteVideoDetail> videoSiteDetailMap = new TreeMap<String, SiteVideoDetail>();
 
     public PlaybackOverlayFragment getPlaybackOverlayFragment() {
         return playbackOverlayFragment;
@@ -147,72 +170,48 @@ public class PlaybackController {
             {
                 case THREAD_LOADING_MOVIE_FINISH:
                     String truly_url = handlePlayMove.getTruly_link();
-
+                    //truly_url = "https://download.ted.com/talks/SaraDeWitt_2017-64k.mp4?apikey=489b859150fc58263f17110eeb44ed5fba4a3b22";
                     if(truly_url.compareTo("") != 0) {
                         /* total time is necessary to show video playing time progress bar */
-                        playbackOverlayFragment.setTitle("");
-
-                        int duration = 0;
-                        if(m3u8SegmentsMap != null) {
-                            Iterator it = m3u8SegmentsMap.entrySet().iterator();
-                            while (it.hasNext()) {
-                                Map.Entry entry = (Map.Entry) it.next();
-                                duration += (int) entry.getValue();
+                        if(getCurrentItem() <= mItems.size() - 1) {
+                            mStartTimeMillis = 0;
+                            // Get Current play movie Item
+                            PlayMovie movie = mItems.get(getCurrentItem());
+                            playbackOverlayFragment.setTitle("");
+                            // Set total movie duration it should have been stored on mItems
+                            if (movie.getDuration() == 0) {
+                                movie.setDuration((int) ShareDataClass.getInstance().getDuration(truly_url));
                             }
-                            duration *= 1000;
+                            int duration = (int) movie.getDuration();
+                            // Set truly video url into VideoView
+                            if (ShareDataClass.getInstance().cookieMap.size() > 0) {
+                                Map<String, String> headers = new HashMap<String, String>();
+                                mVideoView.setVideoURI(Uri.parse(truly_url), ShareDataClass.getInstance().cookieMap);
+                            } else {
+                                mVideoView.setVideoPath(truly_url);
+                            }
+                            // Set other play detail
+                            ((PlayMovie)playbackOverlayFragment.getmPlaybackControlsRow().getItem()).setMovie_title(handlePlayMove.getMovie_title());
+                            ((PlayMovie)playbackOverlayFragment.getmPlaybackControlsRow().getItem()).setVideo_title(handlePlayMove.getVideo_title());
+                            ((PlayMovie)playbackOverlayFragment.getmPlaybackControlsRow().getItem()).setVideo_intro(handlePlayMove.getVideo_intro());
+                            playbackOverlayFragment.getmPlaybackControlsRow().setTotalTime(duration);
+                            playbackOverlayFragment.getmPlaybackControlsRow().setCurrentTime(0);
+                            playbackOverlayFragment.getmPlaybackControlsRow().setBufferedProgress(0);
+                            playbackOverlayFragment.getmRowsAdapter().notifyArrayItemRangeChanged(0, playbackOverlayFragment.getmRowsAdapter().size());
+                            updateMetadata();
+                            setCurrentPlaybackState(PlaybackState.STATE_PLAYING);
+                            playPause(mCurrentPlaybackState == PlaybackState.STATE_PLAYING);
                         } else {
-                            duration = (int) ShareDataClass.getInstance().getDuration(truly_url);
+                            playbackOverlayFragment.setTitle("mItems 清單有誤");
                         }
-                        mStartTimeMillis = 0;
-
-                        /* for blibli
-                        String cid = "10186429";
-                        String video_url = "http://www.bilibili.tv/video/av" + cid;
-                        String appkey = "84956560bc028eb7";
-                        String secret = "94aba54af9065f71de72f5508f1cd42e";
-                        Long tsLong = System.currentTimeMillis()/1000;
-                        String ts = tsLong.toString();
-                        String para = "appkey=" + appkey + "&cid=" + cid + "&otype=json&quality=2&type=mp4";
-                        String sign = ShareDataClass.getInstance().md5(para + secret);
-                        String api = "http://interface.bilibili.com/playurl?" + para + "&sign=" + sign;
-                        truly_url = "http://tx.acgvideo.com/1/27/16828499-1-hd.mp4?txTime=1501478086&platform=pc&txSecret=588d44b30ee21077932804b9468774f4&oi=998213733&rate=1280000&hfb=b99ffc3c5c68f00a33123bb25f882d5b";
-                        Map<String, String> headerMap = new HashMap<String, String>();
-                        headerMap.put("User-Agent", "Mozilla/5.0 (Windows NT 10.0; WOW64; rv:51.0) Gecko/20100101 Firefox/51.0");
-                        headerMap.put("Referer", "http://bangumi.bilibili.com/anime/5998/play#103898");
-                        try {
-                            Field field = VideoView.class.getDeclaredField("mHeaders");
-                            field.setAccessible(true);
-                            field.set(mVideoView,  headerMap);
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                        }
-                        mVideoView.setVideoURI(Uri.parse(truly_url), headerMap);
-                        */
-
-                        if (ShareDataClass.getInstance().cookieMap.size() > 0) {
-                            Map<String, String> headers = new HashMap<String, String>();
-                            mVideoView.setVideoURI(Uri.parse(truly_url), ShareDataClass.getInstance().cookieMap);
-                        } else {
-                            mVideoView.setVideoPath(truly_url);
-                        }
-
-                        PlayMovie movie = mItems.get(getCurrentItem());
-                        if(movie.getDuration() == 0) {
-                            movie.setDuration(duration);
-                        }
-                        playbackOverlayFragment.getmPlaybackControlsRow().setTotalTime(duration);
-                        playbackOverlayFragment.getmPlaybackControlsRow().setCurrentTime(0);
-                        playbackOverlayFragment.getmPlaybackControlsRow().setBufferedProgress(0);
-                        playbackOverlayFragment.getmRowsAdapter().notifyArrayItemRangeChanged(0, playbackOverlayFragment.getmRowsAdapter().size());
-                        updateMetadata();
-                        setCurrentPlaybackState(PlaybackState.STATE_PLAYING);
-                        playPause(mCurrentPlaybackState == PlaybackState.STATE_PLAYING);
                     } else {
                         playbackOverlayFragment.setTitle("無法找到片源");
                     }
                     try {
                         playbackOverlayFragment.getFragmentManager().beginTransaction().remove(mSinnerFragment).commit();
-                    } catch (Exception e) { }
+                    } catch (Exception e) {
+                        playbackOverlayFragment.setTitle("無法找到片源");
+                    }
                     break;
                 default:
                     playbackOverlayFragment.getFragmentManager().beginTransaction().remove(mSinnerFragment).commit();
@@ -244,10 +243,23 @@ public class PlaybackController {
                             @Override
                             public void run() {
                                 final String page_url = handlePlayMove.getVideo_url();
-                                String cur_video_url = page_url.substring(0, page_url.indexOf("preview"));
+                                String cur_video_url = page_url;
+                                String video_site = "myself";
+                                Uri uri = Uri.parse(cur_video_url);
+                                String url_origin = "https://" + uri.getAuthority();
+                                String url_referer = cur_video_url;
                                 VideoSiteParser videoSiteParser = new VideoSiteParser();
-                                String truly_video_link = videoSiteParser.doParser(cur_video_url, "");
-                                handlePlayMove.setTruly_link(truly_video_link);
+                                videoSiteDetailMap.clear();
+                                videoSiteDetailMap = videoSiteParser.doParser(cur_video_url, video_site);
+                                if(videoSiteDetailMap.size() > 0) {
+                                    handlePlayMove.setTruly_link(videoSiteDetailMap.entrySet().iterator().next().getValue().getVideo_link());
+                                    handlePlayMove.setDuration(videoSiteDetailMap.entrySet().iterator().next().getValue().getVideo_timelength());
+                                    ShareDataClass.getInstance().cookieMap.put("Referer", url_referer);
+                                    ShareDataClass.getInstance().cookieMap.put("Origin", url_origin);
+                                    ShareDataClass.getInstance().cookieMap.put("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/73.0.3683.103 Safari/537.36");
+                                } else {
+                                    handlePlayMove.setTruly_link("");
+                                }
                                 Message m = new Message();
                                 m.what = THREAD_LOADING_MOVIE_FINISH;
                                 playMovieHandler.sendMessage(m);
@@ -266,96 +278,53 @@ public class PlaybackController {
                             public void run() {
                                 //Get device name
                                 String refSN = page_url.substring(page_url.indexOf("=") + 1);
-                                String url = "http://ani.gamer.com.tw/ajax/getdeviceid.php";
-                                String devideHtml = ShareDataClass.getInstance().GetHttps(url);
+                                String url = "https://ani.gamer.com.tw/ajax/getdeviceid.php";
+                                String devideHtml = ShareDataClass.getInstance().GetHttps(url, false);
                                 String truly_url = "";
 
                                 if (devideHtml.compareTo("") != 0) {
                                     String deviceID = ShareDataClass.getInstance().str_between(devideHtml, "\"deviceid\":\"", "\"}");
                                     String SN = "";
                                     if(page_url.indexOf("animeVideo") < 0) {
-                                        String refHtml = "http://ani.gamer.com.tw/animeRef.php?sn=" + refSN;
-                                        String videoHtml = ShareDataClass.getInstance().GetHttps(refHtml);
+                                        String refHtml = "https://ani.gamer.com.tw/animeRef.php?sn=" + refSN;
+                                        String videoHtml = ShareDataClass.getInstance().GetHttps(refHtml, false);
                                         SN = ShareDataClass.getInstance().str_between(videoHtml, "sn=", "\"");
                                     } else {
                                         SN = ShareDataClass.getInstance().str_between(page_url, "sn=", "\"");
                                     }
-                                    String adHtml = ShareDataClass.getInstance().GetHttps("https://i2.bahamut.com.tw/JS/ad/animeVideo.js");
+                                    String adHtml = ShareDataClass.getInstance().GetHttps("https://i2.bahamut.com.tw/JS/ad/animeVideo.js", false);
                                     String adID = ShareDataClass.getInstance().str_between(adHtml, "id=", "\"");
                                     //Unlock AD
-                                    ShareDataClass.getInstance().GetHttps("http://ani.gamer.com.tw/ajax/videoCastcishu.php?s=" + adID + "&sn=" + SN);
+                                    ShareDataClass.getInstance().GetHttps("https://ani.gamer.com.tw/ajax/videoCastcishu.php?s=" + adID + "&sn=" + SN, false);
 
                                     THREAD_IS_LOADING = true;
                                     try {
                                         while(true) {
-                                            ShareDataClass.getInstance().GetHttps("http://ani.gamer.com.tw/ajax/videoCastcishu.php?s=" + adID + "&sn=" + SN + "&ad=end");
-                                            String m3u8Url = ShareDataClass.getInstance().GetHttps("http://ani.gamer.com.tw/ajax/m3u8.php?sn=" + SN + "&device=" + deviceID);
-                                            String error_code = ShareDataClass.getInstance().str_between(m3u8Url, "{\"src\":\"", "\"}");
-                                            if(m3u8Url.indexOf("error\":7") < 0 && m3u8Url.indexOf("error\":15") < 0) {
-                                                ShareDataClass.getInstance().GetHttps("http://ani.gamer.com.tw/ajax/videoCastcishu.php?s=" + adID + "&sn=" + SN + "&ad=end");
+                                            ShareDataClass.getInstance().GetHttps("https://ani.gamer.com.tw/ajax/videoCastcishu.php?s=" + adID + "&sn=" + SN + "&ad=end", false);
+                                            String m3u8Url = ShareDataClass.getInstance().GetHttps("https://ani.gamer.com.tw/ajax/m3u8.php?sn=" + SN + "&device=" + deviceID, false);
+                                            JSONObject m3u8_jsonobj = new JSONObject(m3u8Url);
+                                            String m3u8_src = m3u8_jsonobj.has("src") ? m3u8_jsonobj.getString("src") : "";
+                                            String m3u8_error_code = m3u8_jsonobj.has("error") ? m3u8_jsonobj.getString("error") : "0";
+                                            if(m3u8_error_code.compareTo("7") != 0 && m3u8_error_code.compareTo("15") != 0) {
+                                                ShareDataClass.getInstance().GetHttps("https://ani.gamer.com.tw/ajax/videoCastcishu.php?s=" + adID + "&sn=" + SN + "&ad=end", false);
 
                                                 //Get truly url
-                                                truly_url = ShareDataClass.getInstance().str_between(m3u8Url, "{\"src\":\"", "\"}");
-                                                truly_url = "http:" + truly_url.replace("\\/", "/");
-
-                                                Map<String, Integer> resolution_map = new HashMap<String, Integer>();
-                                                resolution_map.put("640x360", 4);
-                                                resolution_map.put("960x540", 3);
-                                                resolution_map.put("1280x720", 1);
-                                                resolution_map.put("1920x1080", 2);
-
-                                                Map<String, String> video_list = new HashMap<String, String>();
-                                                //Parser m3u8
-                                                String m3u8_str = ShareDataClass.getInstance().GetHttps(truly_url);
-                                                String[] m3u8_data = m3u8_str.split(Pattern.quote("#EXT-X-STREAM-INF"));
-                                                for(int j = 1; j < m3u8_data.length; j++) {
-                                                    String cur_data = m3u8_data[j];
-                                                    String resolution = ShareDataClass.getInstance().str_between(cur_data, "RESOLUTION=", "gamer").trim();
-                                                    String m3u8_link = cur_data.substring(cur_data.indexOf("gamer"));
-                                                    video_list.put(resolution, m3u8_link);
+                                                // String m3u8_vido_url = ShareDataClass.getInstance().str_between(m3u8Url, "{\"src\":\"", "\"}");
+                                                String m3u8_vido_url = "https:" + m3u8_src.replace("\\/", "/");
+                                                String url_referer = "https://ani.gamer.com.tw/animeVideo.php?sn=" + SN;
+                                                String url_origin = "https://ani.gamer.com.tw";
+                                                VideoSiteParser videoSiteParser = new VideoSiteParser();
+                                                videoSiteDetailMap.clear();
+                                                videoSiteDetailMap = videoSiteParser.doParser(m3u8_vido_url, "m3u8", url_referer, url_origin);
+                                                if(videoSiteDetailMap.size() > 0) {
+                                                    handlePlayMove.setTruly_link(videoSiteDetailMap.entrySet().iterator().next().getValue().getVideo_link());
+                                                    handlePlayMove.setDuration(videoSiteDetailMap.entrySet().iterator().next().getValue().getVideo_timelength());
+                                                    ShareDataClass.getInstance().cookieMap.put("Referer", url_referer);
+                                                    ShareDataClass.getInstance().cookieMap.put("Origin", url_origin);
+                                                    ShareDataClass.getInstance().cookieMap.put("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/73.0.3683.103 Safari/537.36");
+                                                } else {
+                                                    handlePlayMove.setTruly_link("");
                                                 }
-
-                                                int priv_index = 10;
-                                                Iterator it = video_list.entrySet().iterator();
-                                                while (it.hasNext()) {
-                                                    Map.Entry pair = (Map.Entry)it.next();
-                                                    String resolu = (String) pair.getKey();
-                                                    if(resolution_map.containsKey(resolu)) {
-                                                        if (priv_index > resolution_map.get(resolu)) {
-                                                            priv_index = resolution_map.get(resolu);
-                                                            m3u8_str = (String) pair.getValue();
-                                                        }
-                                                    }
-                                                    if(priv_index == 10 && !it.hasNext()) {
-                                                        m3u8_str = (String) pair.getValue();
-                                                    }
-                                                }
-
-                                                // Get duration
-                                                // Get domain
-                                                String temp_str = m3u8_str;
-                                                String domain_str = "" + m3u8_str.substring(0, m3u8_str.indexOf("-video"));
-                                                m3u8_str = "http://gamer-cds.cdn.hinet.net/vod/gamer/" + domain_str + "/hls-ae-2s/" + temp_str;
-
-                                                m3u8SegmentsMap = null;
-                                                String digitRegex = "\\d+";
-                                                Pattern p = Pattern.compile(digitRegex);
-                                                m3u8_str = ShareDataClass.getInstance().GetHttps(m3u8_str);
-                                                String[] lines = m3u8_str.split(System.getProperty("line.separator"));
-                                                for(int j = 0; j < lines.length; j++) {
-                                                    String cur_line = lines[j];
-                                                    if(cur_line.equals("#EXTM3U")){ //start of m3u8
-                                                        m3u8SegmentsMap = new HashMap<String, Integer>();
-                                                    }else if(cur_line.contains("#EXTINF")){ //once found EXTINFO use runner to get the next line which contains the media file, parse duration of the segment
-                                                        Matcher matcher = p.matcher(cur_line);
-                                                        matcher.find(); //find the first matching digit, which represents the duration of the segment, dont call .find() again that will throw digit which may be contained in the description.
-                                                        if( (j + 1) < lines.length) {
-                                                            String net_line = lines[++j];
-                                                            m3u8SegmentsMap.put(net_line, Integer.parseInt(matcher.group(0)));
-                                                        }
-                                                    }
-                                                }
-                                                handlePlayMove.setTruly_link(truly_url);
                                                 Message m = new Message();
                                                 m.what = THREAD_LOADING_MOVIE_FINISH;
                                                 playMovieHandler.sendMessage(m);
@@ -386,8 +355,12 @@ public class PlaybackController {
                             public void run() {
                             try {
                                 VideoSiteParser videoSiteParser = new VideoSiteParser();
-                                String truly_video_link = videoSiteParser.doParser(video_url, video_type);
-                                handlePlayMove.setTruly_link(truly_video_link);
+                                Map<String, SiteVideoDetail> videoSiteDetailMap = videoSiteParser.doParser(video_url, video_type);
+                                if(videoSiteDetailMap.size() > 0) {
+                                    handlePlayMove.setTruly_link(videoSiteDetailMap.entrySet().iterator().next().getValue().getVideo_link());
+                                } else {
+                                    handlePlayMove.setTruly_link("");
+                                }
                                 Message m = new Message();
                                 m.what = THREAD_LOADING_MOVIE_FINISH;
                                 playMovieHandler.sendMessage(m);
@@ -400,6 +373,39 @@ public class PlaybackController {
                             }
                         });
                         thread.start();
+                    } else if (handlePlayMove.getMovie_categoryIndex() == 10) {
+                        final String video_url = handlePlayMove.getVideo_url();
+                        final String video_type = handlePlayMove.getVideo_type();
+                        Thread thread = new Thread(new Runnable() {
+                            @Override
+                            public void run() {
+                                try {
+                                    VideoSiteParser videoSiteParser = new VideoSiteParser();
+                                    videoSiteDetailMap.clear();
+                                    videoSiteDetailMap = videoSiteParser.doParser(video_url, video_type);
+                                    if(videoSiteDetailMap.size() > 0) {
+                                        handlePlayMove.setTruly_link(videoSiteDetailMap.entrySet().iterator().next().getValue().getVideo_link());
+                                        handlePlayMove.setDuration(videoSiteDetailMap.entrySet().iterator().next().getValue().getVideo_timelength());
+                                    } else {
+                                        handlePlayMove.setTruly_link("");
+                                    }
+                                    Message m = new Message();
+                                    m.what = THREAD_LOADING_MOVIE_FINISH;
+                                    playMovieHandler.sendMessage(m);
+                                } catch (Exception e) {
+                                    handlePlayMove.setTruly_link("");
+                                    Message m = new Message();
+                                    m.what = THREAD_LOADING_MOVIE_FINISH;
+                                    playMovieHandler.sendMessage(m);
+                                }
+                            }
+                        });
+                        try {
+                            thread.start();
+                            thread.join();
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
                     } else {
                         Message m = new Message();
                         m.what = -1;
@@ -526,7 +532,8 @@ public class PlaybackController {
         mVideoView.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
             @Override
             public void onCompletion(MediaPlayer mp) {
-                mCurrentPlaybackState = PlaybackState.STATE_NONE;
+                //playNext();
+                // mCurrentPlaybackState = PlaybackState.STATE_NONE;
             }
         });
     }
@@ -579,6 +586,23 @@ public class PlaybackController {
     public void releaseMediaSession() {
         if(mSession != null) {
             mSession.release();
+        }
+    }
+
+    public void playNext() {
+        if(!THREAD_IS_LOADING) {
+            if (++mCurrentItem >= mItems.size()) { // Current Item is set to next here
+                mCurrentItem = 0;
+            }
+            Log.d(TAG, "onSkipToNext: " + mCurrentItem);
+            PlayMovie movie = mItems.get(mCurrentItem);
+            if (movie != null) {
+                setVideoPathWithHandle(movie);
+                // updateMetadata();
+                //playPause(mCurrentPlaybackState == PlaybackState.STATE_PLAYING);
+            } else {
+                Log.e(TAG, "onSkipToNext movie is null!");
+            }
         }
     }
 
@@ -649,22 +673,8 @@ public class PlaybackController {
 
         @Override
         public void onSkipToNext() {
-            if(!THREAD_IS_LOADING) {
-                if (++mCurrentItem >= mItems.size()) { // Current Item is set to next here
-                    mCurrentItem = 0;
-                }
-                Log.d(TAG, "onSkipToNext: " + mCurrentItem);
-                PlayMovie movie = mItems.get(mCurrentItem);
-                if (movie != null) {
-                    setVideoPathWithHandle(movie);
-                    updateMetadata();
-                    playPause(mCurrentPlaybackState == PlaybackState.STATE_PLAYING);
-                } else {
-                    Log.e(TAG, "onSkipToNext movie is null!");
-                }
-            }
+            playNext();
         }
-
 
         @Override
         public void onSkipToPrevious() {

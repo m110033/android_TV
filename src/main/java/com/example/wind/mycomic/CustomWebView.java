@@ -112,7 +112,7 @@ public class CustomWebView extends Activity {
         // Navigate anywhere you want, but consider that this classes have only been tested on YouTube's mobile site
         //video_url = "http://tx.acgvideo.com/1/27/16828499-1-hd.mp4?txTime=1501478086&platform=pc&txSecret=588d44b30ee21077932804b9468774f4&oi=998213733&rate=1280000&hfb=b99ffc3c5c68f00a33123bb25f882d5b";
         webView.loadUrl(video_url);
-        //progressBar = ProgressDialog.show(CustomWebView.this, "自動跳轉解析", "讀取中...");
+        progressBar = ProgressDialog.show(CustomWebView.this, "自動跳轉解析", "讀取中...");
 /*
         webview.getSettings().setJavaScriptEnabled(true);
         webview.addJavascriptInterface(new MyJavaScriptInterface(this), "HtmlViewer");

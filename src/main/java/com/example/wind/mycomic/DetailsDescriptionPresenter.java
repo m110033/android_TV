@@ -17,17 +17,22 @@ package com.example.wind.mycomic;
 import android.support.v17.leanback.widget.AbstractDetailsDescriptionPresenter;
 
 import com.example.wind.mycomic.object.Movie;
+import com.example.wind.mycomic.utils.PlayMovie;
 
 public class DetailsDescriptionPresenter extends AbstractDetailsDescriptionPresenter {
 
     @Override
     protected void onBindDescription(ViewHolder viewHolder, Object item) {
-        Movie movie = (Movie) item;
-
-        if (movie != null) {
+        if (item instanceof Movie) {
+            Movie movie = (Movie) item;
             viewHolder.getTitle().setText(movie.getTitle());
             viewHolder.getSubtitle().setText(movie.getStudio());
             viewHolder.getBody().setText(movie.getDescription());
+        } else if (item instanceof PlayMovie) {
+            PlayMovie movie = (PlayMovie) item;
+            viewHolder.getTitle().setText(movie.getMovie_title());
+            viewHolder.getSubtitle().setText(movie.getVideo_title());
+            viewHolder.getBody().setText(movie.getVideo_intro());
         }
     }
 }

@@ -82,7 +82,7 @@ public class SiteClass {
         final Thread thread = new Thread(new Runnable() {
             @Override
             public void run() {
-                String source = ShareDataClass.getInstance().GetHttps(url);
+                String source = ShareDataClass.getInstance().GetHttps(url, false);
                 String movies = ShareDataClass.getInstance().str_between_l(source, "\"movies\": [", "]}");
                 String first_chunk = ShareDataClass.getInstance().str_between(movies, "{\"", "\":");
                 String[] tokens = movies.split(Pattern.quote("{\"" + first_chunk + "\""));
@@ -220,13 +220,15 @@ public class SiteClass {
         final Thread thread = new Thread(new Runnable() {
             @Override
             public void run() {
+                /*
                 String fileName = url.substring(url.lastIndexOf('/') + 1);
                 if (fileName.indexOf("_") >= 0) {
                     fileName = fileName.substring(0, fileName.indexOf("_"));
                 } else if (fileName.indexOf(".") >= 0) {
                     fileName = fileName.substring(0, fileName.indexOf("."));
                 }
-                String jsonStr = ShareDataClass.getInstance().GetHttps(url);
+                */
+                String jsonStr = ShareDataClass.getInstance().GetHttps(url, false);
                 Gson gson = new Gson();
                 MovieSite movieSite = gson.fromJson(jsonStr, MovieSite.class);
 
@@ -255,7 +257,7 @@ public class SiteClass {
                     cur_movie_obj.setVideoPage(page_link);
                     cur_movie_obj.setBackgroundImageUrl(ShareDataClass.getInstance().default_fragment_background);
                     cur_movie_obj.setCategory(site_category);
-                    cur_movie_obj.setType(fileName);
+                    cur_movie_obj.setType(site_category);
                     movie_list.add(cur_movie_obj);
                 }
             }
