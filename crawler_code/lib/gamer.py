@@ -6,7 +6,7 @@ from datetime import datetime, timedelta
 
 from common.common import (create_folder, str_between, cleanhtml, STORE_SITE, DEBUG_SITE)
 from movieClass import movie_class
-from common.request import create_opener
+from common.request import request_func
 
 movie_obj = movie_class()
 today_date = datetime.now().strftime("%Y-%m-%d")
@@ -21,9 +21,7 @@ def crawl_gamer(debug_mode, main_logger):
     video_url = 'https://ani.gamer.com.tw/animeList.php?page=1&c=0'
 
     # Get source
-    opener = create_opener()
-    response = opener.open(video_url)
-    html = response.read()
+    html = request_func(video_url)
 
     page_num_str = str_between(html, "<div class=\"page_number\">", "/div>").strip()
     page_num_str = str_between(page_num_str, "...<a href=\"?page=", "&").strip()
@@ -35,9 +33,9 @@ def crawl_gamer(debug_mode, main_logger):
 
         main_logger.debug("Parse the pages: " + page_index_str + "/" + page_num_str)
         video_url = 'https://ani.gamer.com.tw/animeList.php?page=' + page_index_str + '&c=0'
+
         # Get source
-        response = opener.open(video_url)
-        html = response.read()
+        html = request_func(video_url)
 
         htmlCode = str_between(html, "<ul class='anime_list'>", "</ul>").strip()
         htmlCode = htmlCode.split("<i class=\"material-icons\">")
@@ -45,8 +43,8 @@ def crawl_gamer(debug_mode, main_logger):
 
         if len(htmlCode) > 0:
             for data in htmlCode:
-                page_link = "http://ani.gamer.com.tw/" + str_between(data, "<a href=\"", "\">")
-                img = str_between(data, "data-bg=\"", "\"></div")
+                page_link = "http://ani.gamer.com.tw/" + str_between(data, "<a href=\"", "\"")
+                img = str_between(data, "data-bg=\"", "\"")
                 video_uuid = str_between(data, "animeRef.php?sn=", "\"").strip()
 
                 data_info = str_between(data, "<div class=\"info\">", "/div>")
@@ -55,11 +53,21 @@ def crawl_gamer(debug_mode, main_logger):
                     title = str_between(data_blocks[1], ">", "</b>").strip()
                     temp_data = str_between(data_blocks[2], "r>", "<").strip()
                     year_info = str_between(temp_data, "年份：", "共").strip()
-                    date_obj = datetime.strptime(year_info, '%Y/%m')
-                    date_str = datetime.strftime(date_obj, '%Y-%m-%d')
+                    try:
+                        date_obj = datetime.strptime(year_info, '%Y/%m')
+                        date_str = datetime.strftime(date_obj, '%Y-%m-%d')
+                    except:
+                        date_str = "1911-01-01"
                     ep_info = str_between(temp_data, "共", "集").strip()
 
                 cur_play_number = int(ep_info)
+
+                # print {
+                #     "title": title,
+                #     "img": img,
+                #     "page_link": page_link,
+                #     "date_str": date_str
+                # }
 
                 movie_obj.addMovie(
                     movie_title = title,
@@ -149,7 +157,7 @@ def crawl_gamer(debug_mode, main_logger):
                 except:
                     main_logger.debug("Add movie into obj failed")
                 #break
-        #break
+        # break
 
     # movie_obj.remove_unused_uuid(uuid_list)
 
@@ -160,9 +168,9 @@ def crawl_gamer(debug_mode, main_logger):
     else:
         cur_directory = STORE_SITE
 
-    top_dir = cur_directory + '/gamer'
+    top_dir = cur_directory / 'gamer'
     create_folder(top_dir)
 
-    filePtr = open(top_dir + '/gamer.json', 'w')
+    filePtr = open(top_dir / 'gamer.json', 'w')
     filePtr.write(json_str)
     filePtr.close()

@@ -4,6 +4,7 @@
 import json
 import sys
 import os
+import re
 from datetime import datetime, timedelta
 
 from common.common import (create_folder, str_between, cleanhtml, STORE_SITE, DEBUG_SITE)
@@ -54,26 +55,33 @@ def crawl_myself(debug_mode, main_logger):
                 response = opener.open(url)
                 html = response.read()
 
-                htmlCode = str_between(html, "separatorline", "</form>")
+                htmlCode = str_between(html, "ml mlt mtw cl", "</ul>")
                 htmlCode = htmlCode.split("<div class=\"c cl\">")
 
                 if len(htmlCode) > 0:
                     for date in htmlCode:
-                        title = str_between(date, "title=\"", "\">").strip()
-                        if title == "":
+                        mobj = re.search('<a href="(.+)" onclick="atarget\(this\)" title="(.+)">', date)
+                        if not mobj:
                             continue
-                        linkName = str_between(date, "<a href=\"", "\"");
+                        linkName = mobj.group(1).strip()
+                        title = mobj.group(2).strip()
+                        if linkName == "" or title == "":
+                            continue
                         video_uuid = str_between(linkName, "thread-", "-1").strip()
                         realLink = "http://myself-bbs.com/" + linkName
-                        img = "http://myself-bbs.com/" + str_between(date, "<img src=\"", "\"")
+                        mobj = re.search("<img src=\"(.+)\" alt", date)
+                        img = "http://myself-bbs.com/%s" % (mobj.group(1) if mobj else "")
                         # view_number = str_between(date, "<em title=", "/em>");
                         # view_number = str_between(view_number, "\">", "<").strip();
-                        create_date = str_between(date, "<em class=\"xs0\">", "</em>").strip()
-                        if create_date.find("title") >= 0:
-                            create_date = str_between(create_date, "<span title=\"", "\"").strip()
-                        if create_date.find("-") >= 0:
-                            date_arr = create_date.split('-')
+                        mobj = re.search("<em class=\"xs0\">(.+)</em>", date)
+                        if mobj:
+                            tmp_data = mobj.group(1)
+                            tmpobj = re.search("<span title=\"(.+)\"", tmp_data)
+                            tmpdate = tmpobj.group(1) if tmpobj else tmp_data
+                            date_arr = tmpdate.split('-')
                             create_date = "%s-%02d-%02d" % (date_arr[0], int(date_arr[1]), int(date_arr[2]))
+                        else:
+                            create_date = today_date
                         # ep_info = str_between(date, "ep_info\">", "</p>").strip();
                         # cur_play_number = int(str_between(ep_info, " ", " ").strip())
                         movie_obj.addMovie(
@@ -160,6 +168,7 @@ def crawl_myself(debug_mode, main_logger):
                 exc_type, exc_obj, exc_tb = sys.exc_info()
                 fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
                 main_logger.debug("%s, %s, %s, %s" % (exc_type, fname, exc_tb.tb_lineno, str(e)))
+                raise
 
         top_dir = cur_directory + '/myself'
         detail_dir = top_dir + "/detail"

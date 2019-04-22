@@ -1,18 +1,28 @@
 import re
 import os 
+from pathlib import Path
+
+GDRIVE_OS = "WINDOWS" # LINUX
 
 CP_CMD = "/bin/cp"
 GIT_CMD = "/bin/git"
-GDRIVE_CMD = "/usr/sbin/gdrive"
-# GIT_PATH = "/mnt/edisk/disk2/git/android_TV"
-GIT_PATH = "/home/git/gdrive/"
-MAIN_LOG_NAME = "crawler.log"
-TMP_DIR_PATH = GIT_PATH + "/crawler_code/logs"
-MAIN_LOG_PATH = TMP_DIR_PATH + "/" + MAIN_LOG_NAME
+if GDRIVE_OS == "WINDOWS":
+    ###
+    # Installation Method
+    # 1. Copy lib/gdrive.exe to "C:\Windows\System32\gdrive.exe"
+    # 2. Add this path to windows' environment: PATH
+   ###
+    GDRIVE_CMD = "gdrive.exe"
+else:
+    GDRIVE_CMD = "/usr/sbin/gdrive"
+GIT_PATH = "/mnt/edisk/disk2/git/android_TV"
+GD_PATH = Path(os.path.abspath(__file__)).parents[1]
+print(GD_PATH)
 
-STORE_SITE = GIT_PATH + "/video_site/"
-DEBUG_SITE = GIT_PATH + "/video_site/debug/"
-
+MAIN_LOG_PATH = GD_PATH / "logs" / "crawler.log"
+GDRIVE_ID_PATH = GD_PATH / "client_secret.json"
+STORE_SITE = GD_PATH / "video_site"
+DEBUG_SITE = GD_PATH / "video_site" / "debug"
 
 def cleanhtml(raw_html):
     cleanr = re.compile('<.*?>')
