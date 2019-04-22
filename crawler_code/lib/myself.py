@@ -10,7 +10,7 @@ from datetime import datetime, timedelta
 from common.common import (create_folder, str_between, cleanhtml, STORE_SITE, DEBUG_SITE)
 from movieClass import movie_class
 from movieDetailClass import movie_detail_class
-from common.request import create_opener
+from common.request import request_func
 
 today_date = datetime.now().strftime("%Y-%m-%d")
 
@@ -34,9 +34,7 @@ def crawl_myself(debug_mode, main_logger):
         movie_detail_obj = movie_detail_class()
 
         # Get source
-        opener = create_opener()
-        response = opener.open(video_url)
-        html = response.read()
+        html = request_func(video_url)
 
         page_num_str = str_between(html, "<span title=\"", "\"").strip()
         page_num_str = str_between(page_num_str, " ", " ").strip()
@@ -52,8 +50,7 @@ def crawl_myself(debug_mode, main_logger):
                 main_logger.debug("Parse the pages: " + page_index_str + "/" + page_num_str)
 
                 url = cur_comic_prefix_link + page_index_str + ".html"
-                response = opener.open(url)
-                html = response.read()
+                html = request_func(url)
 
                 htmlCode = str_between(html, "ml mlt mtw cl", "</ul>")
                 htmlCode = htmlCode.split("<div class=\"c cl\">")
@@ -84,6 +81,12 @@ def crawl_myself(debug_mode, main_logger):
                             create_date = today_date
                         # ep_info = str_between(date, "ep_info\">", "</p>").strip();
                         # cur_play_number = int(str_between(ep_info, " ", " ").strip())
+                        # print({
+                        #     "title": title,
+                        #     "img": img,
+                        #     "realLink": realLink,
+                        #     "create_date": create_date
+                        # })
                         movie_obj.addMovie(
                             movie_title = title,
                             movie_image = img,
@@ -162,16 +165,16 @@ def crawl_myself(debug_mode, main_logger):
                                 main_logger.debug("%s, Can't find any google videos" % (video_uuid))
                         except:
                             main_logger.debug("No Video")
-                        #break
-                #break
+                        # break
+                # break
             except Exception as e: 
                 exc_type, exc_obj, exc_tb = sys.exc_info()
                 fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
                 main_logger.debug("%s, %s, %s, %s" % (exc_type, fname, exc_tb.tb_lineno, str(e)))
                 raise
 
-        top_dir = cur_directory + '/myself'
-        detail_dir = top_dir + "/detail"
+        top_dir = cur_directory / 'myself'
+        detail_dir = top_dir / "detail"
 
         create_folder(cur_directory)
         create_folder(top_dir)
