@@ -11,6 +11,8 @@ if GDRIVE_OS == "WINDOWS":
     # Installation Method
     # 1. Copy lib/gdrive.exe to "C:\Windows\System32\gdrive.exe"
     # 2. Add this path to windows' environment: PATH
+    # 3. Use the following cmd to register a0985510 with browser: gdrive.exe update 0B1_1ZUYYMDcrbFgtTlVnNC1PQUE D:\程式相關\程式設計\Python\tvapp\crawler_code\video_site\gamer\gamer.json
+    # 4. If use the wrong account to register, go to "C:\Users\eric1\AppData\Roaming\.gdrive\token_v2.json" to delete the token file
    ###
     GDRIVE_CMD = "gdrive.exe"
 else:
