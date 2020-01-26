@@ -1,2 +1,6 @@
 *.log
 *.pyc
+android_tv/build
+android_tv/app/build
+android_tv/app/release
+android_tv/.gitignore
