@@ -16,7 +16,6 @@ from common.common import (create_folder, GIT_PATH, GIT_CMD, MAIN_LOG_PATH, GDRI
 from lib.myself import crawl_myself
 from lib.gamer import crawl_gamer
 from lib.laughseejapan import crawl_laughseejapan
-from lib.jikzy import crawl_jikzy
 
 debug_mode = False
 
@@ -115,7 +114,7 @@ def gdrive_udpate(reget = True):
         crawl_myself(debug_mode = debug_mode, main_logger = main_logger)
         crawl_gamer(debug_mode = debug_mode, main_logger = main_logger)
         # crawl_laughseejapan(debug_mode = debug_mode, main_logger = main_logger)
-        crawl_jikzy(debug_mode = debug_mode, main_logger = main_logger, depth = 6)
+        # crawl_jikzy(debug_mode = debug_mode, main_logger = main_logger, depth = 6)
 
     for update_item in update_list:
         __id = update_item["id"]

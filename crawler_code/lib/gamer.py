@@ -36,7 +36,7 @@ def crawl_gamer(debug_mode, main_logger):
         html = request_func(video_url)
         html = html.replace('</i>', '')
         # print(html)
-        soup = BeautifulSoup(html, 'html5lib')
+        soup = BeautifulSoup(html, 'html.parser')
         for ultags in soup.find_all('ul', {'class': 'anime_list'}):
             for litags in ultags.find_all('li'):
                 page_link = "http://ani.gamer.com.tw/" + litags.find('a').get("href").strip()

@@ -2,7 +2,7 @@ import re
 import os 
 from pathlib import Path
 
-GDRIVE_OS = "WINDOWS" # LINUX
+GDRIVE_OS = "LINUX" # LINUX
 
 CP_CMD = "/bin/cp"
 GIT_CMD = "/bin/git"
