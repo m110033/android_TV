@@ -43,8 +43,8 @@ public class VideoAnalyzer {
         String url_referer = videoUrl;
         videoParser.doParser(videoUrl, video_site);
         videoLink = (videoParser.getVideoMap().size() > 0) ? videoParser.getVideoMap().entrySet().iterator().next().getValue().getSiteLink() : "";
-        cookieMap.put("Referer", url_referer);
-        cookieMap.put("Origin", url_origin);
+//        cookieMap.put("Referer", url_referer);
+//        cookieMap.put("Origin", url_origin);
         cookieMap.put("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/73.0.3683.103 Safari/537.36");
     }
 

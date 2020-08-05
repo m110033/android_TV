@@ -252,19 +252,14 @@ public class Video {
     }
 
     private void myselfParser(String url) {
-        Uri uri = Uri.parse(url);
-        String host_url = "https://" + uri.getAuthority() + "/api/files/index";
-        List<String> pathSeg = uri.getPathSegments();
-        for(int i = pathSeg.size() - 2; i < pathSeg.size(); i++) {
-            host_url += "/" + pathSeg.get(i);
-        }
+        String host_url = url.replace("player/play", "vpx");
         String videoHtml = ShareData.getInstance().GetHttps(host_url, false, url, null);
         try {
             JSONObject videoObj = new JSONObject(videoHtml);
             JSONObject resolutionObj = videoObj.getJSONObject("video");
             JSONArray hostArr = videoObj.getJSONArray("host");
-            if(hostArr.length() > 0) {
-                String host = hostArr.get(0).toString().replace("\\/", "/");
+            if(resolutionObj.length() > 0) {
+                String host = hostArr.getJSONObject(0).getString("host");
                 Iterator<String> iter = resolutionObj.keys();
                 while (iter.hasNext()) {
                     String key = iter.next();
