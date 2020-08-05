@@ -6,7 +6,7 @@ android {
         applicationId 'com.wind.tvplayer'
         minSdkVersion 21
         targetSdkVersion 26
-        versionCode 21
+        versionCode 26
         versionName "1.0"
     }
     buildTypes {
