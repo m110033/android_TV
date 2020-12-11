@@ -1,0 +1,11 @@
+環境需求:
+python3
+套件: pip3 install BeautifulSoup4
+
+
+gdrive 使用 google service account 來上傳檔案的方法:
+
+1. 先去 google cloud platform 申請服務帳戶 (Service Account)
+2. 產生金鑰之後取得私鑰，並取名成 "credential.json" 放在 C:\Users\使用者\AppData\Roaming\ 裡面，如果 .gdrive 不存在則自己建立.gdrive
+3. 接著就能正常上傳檔案，指令如下:
+gdrive.exe --service-account credential.json update FILE_ID C:\Eric\github\crawler_code\video_site\gamer\gamer.json

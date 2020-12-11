@@ -84,35 +84,16 @@ def run_cmd(cmd_str, discard_error = True):
         
 def gdrive_udpate(reget = True):
     update_list = [ 
-        { 'id': '0B1_1ZUYYMDcrbFgtTlVnNC1PQUE', 'path':'gamer/gamer.json' },
-        { 'id': '0B1_1ZUYYMDcrbG9fZlpLYzFEMWM', 'path':'maplestage/drama_kr.json' },
-        { 'id': '0B1_1ZUYYMDcrbG0tSWxLNlZpMDQ', 'path':'maplestage/drama_cn.json' },
-        { 'id': '0B1_1ZUYYMDcrbGh3cmt0STA2b2c', 'path':'maplestage/variety_kr.json' },
-        { 'id': '0B1_1ZUYYMDcrbGhuSDJTanc2WWc', 'path':'maplestage/variety_tw.json' },
-        { 'id': '0B1_1ZUYYMDcrbGVENHNOWHRKUkE', 'path':'maplestage/variety_cn.json' },
-        { 'id': '0B1_1ZUYYMDcrbGRYSDEwZ2ljazA', 'path':'maplestage/drama_tw.json' },
-        { 'id': '0B1_1ZUYYMDcrbGF6V2otT09GVmc', 'path':'maplestage/drama_ot.json' },
-        { 'id': '0B1_1ZUYYMDcrbGtOX0hHdE5tOGs', 'path':'myself/online_comic.json' },
-        { 'id': '0B1_1ZUYYMDcrbGtEbHZ1RFMtdGc', 'path':'myself/end_comic.json' },
-        { 'id': '17es2XCOZ4sfieNe75lF3ST-zvNkWeSIF', 'path':'anime1/anime1.json' },
-        { 'id': '1sQHjyriAuNIexoNvzaYdNMU62s8qrq2i', 'path':'laughseejapan/variety.json' },
-        { 'id': '1Lc2GtEnu31zTH06ofDi3CXXovDiLt2zv', 'path':'laughseejapan/anime.json' },
-        { 'id': '1JzdHFA1r89z9cGsgDxpT1CBoL64TPj2W', 'path':'laughseejapan/drama.json' },
-        { 'id': '18gxyuOnIK7LCZON-Q6a3YMuWiAhSK6NV', 'path':'jikzy/韓劇.json' },
-        { 'id': '1iUIcp-IeD8rjn-a84uS9MoslYeoBWe5X', 'path':'jikzy/電影.json' },
-        { 'id': '1gkrl_72IZnsnDKNkcJhkeXGmfmBb73qK', 'path':'jikzy/陸劇.json' },
-        { 'id': '1d2AQ-8rF9HxuioMwK9Uu2ujVgTiFxf0z', 'path':'jikzy/動漫.json' },
-        { 'id': '1HbvikpZuXhQq5RhTPwwM0VrmFbPLmWBR', 'path':'jikzy/美劇.json' },
-        { 'id': '1Cg7vGk_lHhjs62Tgy5lYDWx_sNIdc4SA', 'path':'jikzy/港劇.json' },
-        { 'id': '1vYffF2yHm4Ir0wumoWU-J3uDf-T3wGsY', 'path':'jikzy/連戲劇.json' },
-        { 'id': '1ZYjAzED4n6UxgiJvmgoB7jSyLUX7dX_d', 'path':'jikzy/日劇.json' }
+        { 'id': '11vw7GG9JtQfSbxRekzKDUfwBBFt1h0Sa', 'path':'gamer/gamer.json' },
+        { 'id': '1_7xK1R-rDeETXHiMFDiXVIU9UASzOgnc', 'path':'myself/online_comic.json' },
+        { 'id': '1HVozodmZLLfaUsvO4kPPAV9nrudINjql', 'path':'myself/end_comic.json' }
     ]
 
     if reget:
         # crawl_anime1(debug_mode = debug_mode, main_logger = main_logger)
         # crawl_maplestage(debug_mode = debug_mode, main_logger = main_logger)
         crawl_myself(debug_mode = debug_mode, main_logger = main_logger)
-        crawl_gamer(debug_mode = debug_mode, main_logger = main_logger)
+        # crawl_gamer(debug_mode = debug_mode, main_logger = main_logger)
         # crawl_laughseejapan(debug_mode = debug_mode, main_logger = main_logger)
         # crawl_jikzy(debug_mode = debug_mode, main_logger = main_logger, depth = 6)
 
@@ -124,8 +105,8 @@ def gdrive_udpate(reget = True):
         __path = str(__path)
 
         if os.path.exists(__path):
-            run_cmd("%s update %s %s" % (GDRIVE_CMD, __id, __path))
-            run_cmd("%s share --role reader --type anyone %s" % (GDRIVE_CMD, __id))
+            run_cmd("%s --service-account credential.json update %s %s" % (GDRIVE_CMD, __id, __path))
+            run_cmd("%s --service-account credential.json share --role reader --type anyone %s" % (GDRIVE_CMD, __id))
 
 def git_push():
     # Change path
