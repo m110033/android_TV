@@ -42,9 +42,13 @@ import com.wind.tvplayer.model.video.Site;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Date;
 
 
 public class VideoFragment extends BrowseFragment {
@@ -202,10 +206,23 @@ public class VideoFragment extends BrowseFragment {
     }
 
     private  class SortMovieList implements Comparator<Movie> {
+        public Date parseDate(String dateString) {
+            String[] formatStrings = {"yyyy/MM/dd", "yyyy-MM-dd", "yyyy-MM", "yyyy/MM", "yyyy"};
+            for (String formatString : formatStrings)
+            {
+                try
+                {
+                    return new SimpleDateFormat(formatString).parse(dateString);
+                }
+                catch (ParseException e) {}
+            }
+            return new Date(1911, 1, 1);
+        }
+
         public int compare(Movie movieA, Movie movieB) {
-            String yearA = movieA.getMovieDate().substring(0, 4);
-            String yearB = movieB.getMovieDate().substring(0, 4);
-            return Integer.parseInt(yearB) - Integer.parseInt(yearA);
+            Date dateA = parseDate(movieA.getMovieDate());
+            Date dateB = parseDate(movieB.getMovieDate());
+            return dateB.compareTo(dateA);
         }
     }
 }
