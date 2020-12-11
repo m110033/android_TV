@@ -2,17 +2,26 @@ import re
 import os 
 from pathlib import Path
 
-GDRIVE_OS = "LINUX" # LINUX
+GDRIVE_OS = "WINDOWS" # LINUX
 
 CP_CMD = "/bin/cp"
 GIT_CMD = "/bin/git"
 if GDRIVE_OS == "WINDOWS":
     ###
+    # GDRRIVE LIB: https://github.com/prasmussen/gdrive
     # Installation Method
     # 1. Copy lib/gdrive.exe to "C:\Windows\System32\gdrive.exe"
     # 2. Add this path to windows' environment: PATH
-    # 3. Use the following cmd to register a0985510 with browser: gdrive.exe update 0B1_1ZUYYMDcrbFgtTlVnNC1PQUE D:\程式相關\程式設計\Python\tvapp\crawler_code\video_site\gamer\gamer.json
-    # 4. If use the wrong account to register, go to "C:\Users\eric1\AppData\Roaming\.gdrive\token_v2.json" to delete the token file
+    # 3. Set the AUTH
+    # How to get authenticated: https://github.com/prasmussen/gdrive/wiki
+    # Go to https://developers.google.com/oauthplayground.
+    # Under the Drive API v3, select one of the following APIs:
+    # https://www.googleapis.com/auth/drive.readonly
+    # https://www.googleapis.com/auth/drive
+    # Click Authorize APIs
+    # Click Exchange Authorization Codes for Token
+    # Copy the resulting Access token will allow you to run gdrive with --access-token. For some reason the Refresh token does not seem to work with --refresh-token.
+    # Example: gdrive.exe --access-token ACCESS_TOKEN C:\Eric\github\crawler_code\video_site\gamer\gamer.json
    ###
     GDRIVE_CMD = "gdrive.exe"
 else:
