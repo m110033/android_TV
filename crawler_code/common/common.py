@@ -2,7 +2,7 @@ import re
 import os 
 from pathlib import Path
 
-GDRIVE_OS = "WINDOWS" # LINUX
+GDRIVE_OS = "LINUX" #"WINDOWS" # LINUX
 
 CP_CMD = "/bin/cp"
 GIT_CMD = "/bin/git"
@@ -25,7 +25,7 @@ if GDRIVE_OS == "WINDOWS":
    ###
     GDRIVE_CMD = "gdrive.exe"
 else:
-    GDRIVE_CMD = "/usr/sbin/gdrive"
+    GDRIVE_CMD = "/usr/bin/gdrive"
 
 def cleanhtml(raw_html):
     cleanr = re.compile('<.*?>')

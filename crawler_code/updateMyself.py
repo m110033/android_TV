@@ -11,8 +11,9 @@ import time
 import logging
 import time
 import shutil
+import schedule
 
-from common.common import (create_folder, GIT_PATH, GIT_CMD, MAIN_LOG_PATH, GDRIVE_CMD, GD_PATH, STORE_SITE)
+from common.common import (create_folder, GIT_PATH, GIT_CMD, MAIN_LOG_PATH, GDRIVE_CMD, GD_PATH, STORE_SITE, GDRIVE_OS)
 from lib.myself import crawl_myself
 from lib.gamer import crawl_gamer
 from lib.laughseejapan import crawl_laughseejapan
@@ -82,7 +83,7 @@ def run_cmd(cmd_str, discard_error = True):
 
         return output
         
-def gdrive_udpate(reget = True):
+def gdrive_update(reget = True):
     update_list = [ 
         { 'id': '11vw7GG9JtQfSbxRekzKDUfwBBFt1h0Sa', 'path':'gamer/gamer.json' },
         { 'id': '1_7xK1R-rDeETXHiMFDiXVIU9UASzOgnc', 'path':'myself/online_comic.json' },
@@ -93,7 +94,7 @@ def gdrive_udpate(reget = True):
         # crawl_anime1(debug_mode = debug_mode, main_logger = main_logger)
         # crawl_maplestage(debug_mode = debug_mode, main_logger = main_logger)
         crawl_myself(debug_mode = debug_mode, main_logger = main_logger)
-        # crawl_gamer(debug_mode = debug_mode, main_logger = main_logger)
+        crawl_gamer(debug_mode = debug_mode, main_logger = main_logger)
         # crawl_laughseejapan(debug_mode = debug_mode, main_logger = main_logger)
         # crawl_jikzy(debug_mode = debug_mode, main_logger = main_logger, depth = 6)
 
@@ -156,17 +157,22 @@ if not debug_mode:
     # Clear json
     shutil.rmtree(STORE_SITE, ignore_errors=True)
     os.makedirs(STORE_SITE)
+    
+    # define schedule
+    schedule.every(30).minutes.do(gdrive_update)
 
     # Update json
-    gdrive_udpate()
+    while True:
+        schedule.run_pending()
+        time.sleep(1)
 else:
     # crawl_ikale()
     # crawl_lovemovie()
     # crawl_vmus()
     # crawl_meikutv(debug_mode = debug_mode, main_logger = main_logger)
     # crawl_myself(debug_mode = debug_mode, main_logger = main_logger)
-    # crawl_gamer(debug_mode = debug_mode, main_logger = main_logger)
+    crawl_gamer(debug_mode = debug_mode, main_logger = main_logger)
     # crawl_maplestage(debug_mode = debug_mode, main_logger = main_logger)
     # crawl_laughseejapan(debug_mode = debug_mode, main_logger = main_logger)
-    crawl_jikzy(debug_mode = debug_mode, main_logger = main_logger)
+    # crawl_jikzy(debug_mode = debug_mode, main_logger = main_logger)
     pass
