@@ -41,6 +41,7 @@ import com.bumptech.glide.request.animation.GlideAnimation;
 import com.bumptech.glide.request.target.SimpleTarget;
 import com.wind.tvplayer.common.BackgoundTask;
 import com.wind.tvplayer.common.ShareVideo;
+//import com.wind.tvplayer.controller.parser.ExoPlayer.PlayerActivity;
 import com.wind.tvplayer.controller.parser.ExoPlayer.PlayerActivity;
 import com.wind.tvplayer.controller.parser.Site;
 import com.wind.tvplayer.model.video.Movie;
@@ -208,15 +209,15 @@ public class VideoDetailsFragment extends DetailsFragment {
                 Action action = (Action) item;
                 String actionIndex = Objects.toString(action.getId(), null);
                 Intent intent = new Intent(getActivity(), PlayerActivity.class);
-                intent.putExtra(
-                        PlayerActivity.PREFER_EXTENSION_DECODERS_EXTRA,
-                        isNonNullAndChecked(preferExtensionDecodersMenuItem));
-                String abrAlgorithm =
-                        isNonNullAndChecked(randomAbrMenuItem)
-                                ? PlayerActivity.ABR_ALGORITHM_RANDOM
-                                : PlayerActivity.ABR_ALGORITHM_DEFAULT;
-                intent.putExtra(PlayerActivity.ABR_ALGORITHM_EXTRA, abrAlgorithm);
-                intent.putExtra(PlayerActivity.TUNNELING_EXTRA, isNonNullAndChecked(tunnelingMenuItem));
+//                intent.putExtra(
+//                        PlayerActivity.PREFER_EXTENSION_DECODERS_EXTRA,
+//                        isNonNullAndChecked(preferExtensionDecodersMenuItem));
+//                String abrAlgorithm =
+//                        isNonNullAndChecked(randomAbrMenuItem)
+//                                ? PlayerActivity.ABR_ALGORITHM_RANDOM
+//                                : PlayerActivity.ABR_ALGORITHM_DEFAULT;
+//                intent.putExtra(PlayerActivity.ABR_ALGORITHM_EXTRA, abrAlgorithm);
+//                intent.putExtra(PlayerActivity.TUNNELING_EXTRA, isNonNullAndChecked(tunnelingMenuItem));
                 intent.putExtra(DetailsActivity.PLAY_MOVIE_INDEX, actionIndex);
                 startActivity(intent);
             }

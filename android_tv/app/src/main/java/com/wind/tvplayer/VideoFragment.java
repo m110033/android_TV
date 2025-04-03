@@ -108,15 +108,15 @@ public class VideoFragment extends BrowseFragment {
         CardPresenter cardPresenter = new CardPresenter();
 
         // Load proxy site
-        String proxy_json_str = ShareData.getInstance().GetHttps("https://drive.google.com/uc?export=download&id=0B1_1ZUYYMDcreVh6eG5JaXNuaFk", false);
-        JSONObject proxyObj = null;
-        try {
-            proxyObj = new JSONObject(proxy_json_str);
-            ShareData.getInstance().proxy_ip_address = proxyObj.getString("ip_address");
-            ShareData.getInstance().proxy_ip_port = proxyObj.getInt("port");
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
+//        String proxy_json_str = ShareData.getInstance().GetHttps("https://drive.google.com/uc?export=download&id=0B1_1ZUYYMDcreVh6eG5JaXNuaFk", false);
+//        JSONObject proxyObj = null;
+//        try {
+//            proxyObj = new JSONObject(proxy_json_str);
+//            ShareData.getInstance().proxy_ip_address = proxyObj.getString("ip_address");
+//            ShareData.getInstance().proxy_ip_port = proxyObj.getInt("port");
+//        } catch (JSONException e) {
+//            e.printStackTrace();
+//        }
 
         // Get Site
         com.wind.tvplayer.controller.parser.Site siteClass = new com.wind.tvplayer.controller.parser.Site();

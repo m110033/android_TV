@@ -20,7 +20,7 @@
         android:icon="@mipmap/myself_launcher"
         android:label="@string/app_name"
         android:supportsRtl="true"
-        android:name="com.wind.tvplayer.controller.parser.ExoPlayer.DemoApplication"
+        android:usesCleartextTraffic="true"
         android:theme="@style/AppTheme">
         <activity
             android:name="com.wind.tvplayer.MainActivity"

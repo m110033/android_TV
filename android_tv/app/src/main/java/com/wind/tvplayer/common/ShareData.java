@@ -41,7 +41,7 @@ public class ShareData {
         ));
         siteCardList.add(new Site(
                 "巴哈動畫瘋",
-                "https://drive.google.com/uc?export=download&id=0B1_1ZUYYMDcrbFgtTlVnNC1PQUE",
+                "https://drive.google.com/uc?export=download&id=11vw7GG9JtQfSbxRekzKDUfwBBFt1h0Sa",
                 "https://i2.bahamut.com.tw/baha_logo5.png"
         ));
     }
