@@ -5,6 +5,8 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.KeyEvent;
+import android.view.View;
+import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -61,6 +63,8 @@ public class PlayerActivity extends AppCompatActivity {
 
     private PlayMovie selectedPlayMovie;
 
+    private ProgressBar loadingSpinner;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -68,6 +72,8 @@ public class PlayerActivity extends AppCompatActivity {
 
         // 初始化 PlayerView
         playerView = findViewById(R.id.player_view);
+
+        loadingSpinner = findViewById(R.id.loading_spinner);
 
         // 獲取播放的影片 URL
         Intent intent = getIntent();
@@ -149,6 +155,8 @@ public class PlayerActivity extends AppCompatActivity {
     }
 
     private void fetchM3u8Url(String url) {
+        showLoadingSpinner();
+
         OkHttpClient client = new OkHttpClient.Builder()
                 .connectTimeout(120, TimeUnit.SECONDS)
                 .readTimeout(120, TimeUnit.SECONDS)
@@ -172,7 +180,10 @@ public class PlayerActivity extends AppCompatActivity {
             client.newCall(request).enqueue(new okhttp3.Callback() {
                 @Override
                 public void onFailure(@NonNull okhttp3.Call call, @NonNull IOException e) {
-                    runOnUiThread(() -> showToast("請求失敗：" + e.getMessage()));
+                  runOnUiThread(() -> {
+                    hideLoadingSpinner();
+                    showToast("請求失敗：" + e.getMessage());
+                  });
                 }
 
                 @Override
@@ -188,48 +199,76 @@ public class PlayerActivity extends AppCompatActivity {
                                 String m3u8Url = jsonResponse.getString("m3u8Url");
                                 String referer = jsonResponse.optString("referer", url); // 後端提供的 referer，fallback 給原本的 url
 
-                                runOnUiThread(() -> {
-                                    // 動態設置 headers（改用後端給的 referer）
-                                    Map<String, String> headers = new HashMap<>();
-                                    headers.put("Referer", referer);
-                                    headers.put("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36");
+                              runOnUiThread(() -> {
+                                Uri videoUri = Uri.parse(m3u8Url);
 
-                                    DefaultHttpDataSource.Factory httpDataSourceFactory = new DefaultHttpDataSource.Factory()
-                                            .setConnectTimeoutMs(120_000)
-                                            .setReadTimeoutMs(120_000)
-                                            .setAllowCrossProtocolRedirects(true)
-                                            .setDefaultRequestProperties(headers);
+                                Map<String, String> headers = new HashMap<>();
 
-                                    DefaultDataSource.Factory dataSourceFactory = new DefaultDataSource.Factory(
-                                            getApplicationContext(), httpDataSourceFactory);
+                                // 🔥 根據 Host 判斷是否需要加 header（你可以換成白名單 or regex 判斷）
+                                if (referer.contains("ani.gamer.com")) {
+                                  headers.put("Referer", referer);
+                                  headers.put("Origin", "https://ani.gamer.com.tw");
+                                }
 
-                                    Uri videoUri = Uri.parse(m3u8Url);
-                                    MediaSource mediaSource = buildMediaSource(videoUri, dataSourceFactory);
+                                DefaultHttpDataSource.Factory httpDataSourceFactory = new DefaultHttpDataSource.Factory()
+                                        .setConnectTimeoutMs(8000)
+                                        .setReadTimeoutMs(8000)
+                                        .setAllowCrossProtocolRedirects(true)
+                                        .setDefaultRequestProperties(headers);
 
-                                    boolean haveStartPosition = startWindow != 0 || startPosition != 0;
-                                    if (haveStartPosition) {
-                                        player.seekTo(startWindow, startPosition);
-                                    }
+                                DefaultDataSource.Factory dataSourceFactory = new DefaultDataSource.Factory(
+                                        getApplicationContext(), httpDataSourceFactory);
 
-                                    player.setMediaSource(mediaSource);
-                                    player.prepare();
-                                    player.setPlayWhenReady(startAutoPlay);
-                                });
+                                MediaSource mediaSource = buildMediaSource(videoUri, dataSourceFactory);
+
+                                boolean haveStartPosition = startWindow != 0 || startPosition != 0;
+                                if (haveStartPosition) {
+                                  player.seekTo(startWindow, startPosition);
+                                }
+
+                                player.setMediaSource(mediaSource);
+                                player.prepare();
+                                player.setPlayWhenReady(startAutoPlay);
+
+                                // 記得關閉 loading
+                                hideLoadingSpinner();
+                              });
 
                             } else {
-                                runOnUiThread(() -> showToast("解析失敗，找不到影片網址"));
+                              runOnUiThread(() -> {
+                                hideLoadingSpinner();
+                                showToast("解析失敗，找不到影片網址");
+                              });
                             }
                         } catch (Exception e) {
-                            runOnUiThread(() -> showToast("JSON解析錯誤：" + e.getMessage()));
+                          runOnUiThread(() -> {
+                            hideLoadingSpinner();
+                            showToast("JSON解析錯誤：" + e.getMessage());
+                          });
                         }
                     } else {
-                        runOnUiThread(() -> showToast("伺服器錯誤：" + response.code()));
+                      runOnUiThread(() -> {
+                        hideLoadingSpinner();
+                        showToast("伺服器錯誤：" + response.code());
+                      });
                     }
                 }
             });
         } catch (Exception e) {
             showToast("例外錯誤：" + e.getMessage());
         }
+    }
+
+    private void showLoadingSpinner() {
+      if (loadingSpinner != null) {
+        loadingSpinner.setVisibility(View.VISIBLE);
+      }
+    }
+
+    private void hideLoadingSpinner() {
+      if (loadingSpinner != null) {
+        loadingSpinner.setVisibility(View.GONE);
+      }
     }
 
     private MediaSource buildMediaSource(Uri uri, DataSource.Factory dataSourceFactory) {
