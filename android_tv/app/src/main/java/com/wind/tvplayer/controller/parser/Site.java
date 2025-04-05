@@ -123,21 +123,37 @@ public class Site {
         movie.setDescription(intro);
         String videoHtml = ShareData.getInstance().str_between(htmlCode, "<section class=\"season\">", "</section>").trim();
 
-        // Get all video
-        ArrayList<Video> videoMoviesList = new ArrayList<Video>();
+        ArrayList<Video> videoMoviesList = new ArrayList<>();
         Pattern pattern = Pattern.compile("href=\"(.*?)\">(.*?)</a>");
         Matcher matcher = pattern.matcher(videoHtml);
 
+// 偵測是否有找到其他影片連結
+        boolean hasMatch = false;
+
         while (matcher.find()) {
+            hasMatch = true;
             Video videoMovie = new Video();
             com.wind.tvplayer.model.video.Site siteMovie = new com.wind.tvplayer.model.video.Site();
+
             String video_url = "http://ani.gamer.com.tw/animeVideo.php" + matcher.group(1);
             String video_title = matcher.group(2).trim();
+
             siteMovie.setSiteName("gamer");
             siteMovie.setSiteLink(video_url);
             videoMovie.setSiteMovieList(siteMovie);
             videoMovie.setVideoTitle(video_title);
             videoMoviesList.add(videoMovie);
+        }
+
+// 若沒有其他影片連結，就加入目前這一部影片
+        if (!hasMatch) {
+            Video currentVideo = new Video();
+            com.wind.tvplayer.model.video.Site siteMovie = new com.wind.tvplayer.model.video.Site();
+            siteMovie.setSiteName("gamer");
+            siteMovie.setSiteLink(url);
+            currentVideo.setSiteMovieList(siteMovie);
+            currentVideo.setVideoTitle("1");
+            videoMoviesList.add(currentVideo);
         }
 
         return videoMoviesList;

@@ -29,26 +29,26 @@ public class ShareData {
     }
 
     public void Init () {
-        siteCardList.add(new Site(
-                "動漫 - 連載中",
-                "https://drive.google.com/uc?export=download&id=0B1_1ZUYYMDcrbGtOX0hHdE5tOGs",
-                "http://myself-bbs.com/template/yeei_dream1/css/yeei/logo.png"
-        ));
-        siteCardList.add(new Site(
-                "動漫 - 已完結",
-                "https://drive.google.com/uc?export=download&id=0B1_1ZUYYMDcrbGtEbHZ1RFMtdGc",
-                "http://myself-bbs.com/template/yeei_dream1/css/yeei/logo.png"
-        ));
+//        siteCardList.add(new Site(
+//                "動漫 - 連載中",
+//                "https://drive.google.com/uc?export=download&id=0B1_1ZUYYMDcrbGtOX0hHdE5tOGs",
+//                "http://myself-bbs.com/template/yeei_dream1/css/yeei/logo.png"
+//        ));
+//        siteCardList.add(new Site(
+//                "動漫 - 已完結",
+//                "https://drive.google.com/uc?export=download&id=0B1_1ZUYYMDcrbGtEbHZ1RFMtdGc",
+//                "http://myself-bbs.com/template/yeei_dream1/css/yeei/logo.png"
+//        ));
         siteCardList.add(new Site(
                 "巴哈動畫瘋",
-                "https://drive.google.com/uc?export=download&id=11vw7GG9JtQfSbxRekzKDUfwBBFt1h0Sa",
+                "https://video-parser-k1y9.onrender.com/parser/gamer/list",
                 "https://i2.bahamut.com.tw/baha_logo5.png"
         ));
     }
 
     public static List<String> siteNameList = Arrays.asList(
-            "動漫 - 連載中",
-            "動漫 - 已完結",
+//            "動漫 - 連載中",
+//            "動漫 - 已完結",
             "巴哈動畫瘋"
     );
 
