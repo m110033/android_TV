@@ -4,10 +4,11 @@ public class Site {
     public Site() {
     }
 
-    public Site(String name, String link, String imgLink) {
+    public Site(String name, String link, String imgLink, String parser) {
         siteName = name;
         siteLink = link;
         siteImgLink = imgLink;
+        siteParser = parser;
     }
 
     public String getSiteName() {
@@ -42,9 +43,13 @@ public class Site {
         this.siteLength = siteLength;
     }
 
+    public String getSiteParser() {
+        return siteParser;
+    }
     // Private Data Member
     private String siteName;
     private String siteLink;
     private Integer siteLength;
     private String siteImgLink;
+    private String siteParser;
 }

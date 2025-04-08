@@ -42,7 +42,7 @@ public class VideoCardFragment extends VerticalGridFragment {
 
         String movie_uuid = (String) getActivity().getIntent().getSerializableExtra(DetailsActivity.MOVIE_UUID);
 
-        ArrayList<Movie> movieList = ShareVideo.getInstance().selectedSite.getMovie_list();
+        ArrayList<Movie> movieList = ShareVideo.selectedSite.getMovie_list();
 
         for (int i = 0; i < movieList.size(); i++) {
             if (movieList.get(i).getUuid().compareTo(movie_uuid) == 0) {

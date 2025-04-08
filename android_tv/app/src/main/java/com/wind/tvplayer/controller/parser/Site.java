@@ -14,6 +14,9 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class Site {
+    public String parserUrl = "";
+    public String infoUrl = "";
+
     public ArrayList<Movie> getMovie_list() {
         return movie_list;
     }

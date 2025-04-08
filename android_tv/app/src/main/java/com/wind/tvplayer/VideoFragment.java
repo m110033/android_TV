@@ -100,31 +100,21 @@ public class VideoFragment extends BrowseFragment {
     }
 
     private void loadRows() {
-        Site siteObj = ShareData.getInstance().siteCardList.get(movieIndex);
+        Site siteObj = ShareData.siteCardList.get(movieIndex);
         String site_link = siteObj.getSiteLink();
         String site_type = siteObj.getSiteName();
 
         mRowsAdapter = new ArrayObjectAdapter(new ListRowPresenter());
         CardPresenter cardPresenter = new CardPresenter();
 
-        // Load proxy site
-//        String proxy_json_str = ShareData.getInstance().GetHttps("https://drive.google.com/uc?export=download&id=0B1_1ZUYYMDcreVh6eG5JaXNuaFk", false);
-//        JSONObject proxyObj = null;
-//        try {
-//            proxyObj = new JSONObject(proxy_json_str);
-//            ShareData.getInstance().proxy_ip_address = proxyObj.getString("ip_address");
-//            ShareData.getInstance().proxy_ip_port = proxyObj.getInt("port");
-//        } catch (JSONException e) {
-//            e.printStackTrace();
-//        }
-
         // Get Site
         com.wind.tvplayer.controller.parser.Site siteClass = new com.wind.tvplayer.controller.parser.Site();
         siteClass.jsonParser(site_link, site_type);
-        ShareVideo.getInstance().selectedSite = siteClass; // For movieList
+        siteClass.parserUrl = siteObj.getSiteParser();
+        ShareVideo.selectedSite = siteClass; // For movieList
 
         // Do Sort
-        ArrayList<Movie> movie_list = ShareVideo.getInstance().selectedSite.getMovie_list();
+        ArrayList<Movie> movie_list = ShareVideo.selectedSite.getMovie_list();
         Collections.sort(movie_list, new SortMovieList());
 
         ArrayObjectAdapter listRowAdapter = new ArrayObjectAdapter(cardPresenter);

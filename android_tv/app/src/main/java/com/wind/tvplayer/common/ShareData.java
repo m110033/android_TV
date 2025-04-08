@@ -3,7 +3,14 @@ package com.wind.tvplayer.common;
 import android.text.Html;
 import android.util.Log;
 
+import com.google.gson.Gson;
+import com.wind.tvplayer.model.video.Movie;
 import com.wind.tvplayer.model.video.Site;
+
+import org.apache.commons.lang3.StringEscapeUtils;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.io.BufferedReader;
 import java.io.InputStream;
@@ -29,32 +36,45 @@ public class ShareData {
     }
 
     public void Init () {
-//        siteCardList.add(new Site(
-//                "動漫 - 連載中",
-//                "https://drive.google.com/uc?export=download&id=0B1_1ZUYYMDcrbGtOX0hHdE5tOGs",
-//                "http://myself-bbs.com/template/yeei_dream1/css/yeei/logo.png"
-//        ));
-//        siteCardList.add(new Site(
-//                "動漫 - 已完結",
-//                "https://drive.google.com/uc?export=download&id=0B1_1ZUYYMDcrbGtEbHZ1RFMtdGc",
-//                "http://myself-bbs.com/template/yeei_dream1/css/yeei/logo.png"
-//        ));
-        siteCardList.add(new Site(
-                "巴哈動畫瘋",
-                "https://video-parser-k1y9.onrender.com/parser/gamer/list",
-                "https://i2.bahamut.com.tw/baha_logo5.png"
-        ));
+        final Thread thread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                String url = "https://drive.google.com/uc?export=download&id=1XSnXmI7w__hCophWJ5Bp9fkirkJLH_nN";
+                String jsonStr = ShareData.getInstance().GetHttps(url, false);
+                try {
+                    JSONObject rootObj = new JSONObject(jsonStr);
+                    siteUrl = rootObj.getString("url");
+                    JSONArray siteArray = rootObj.getJSONArray("routes");
+                    for (int i = 0; i < siteArray.length(); i++) {
+                        JSONObject siteObj = siteArray.getJSONObject(i);
+                        String img = siteObj.getString("img");
+                        String list = siteUrl + siteObj.getString("list");
+                        String title = siteObj.getString("title");
+                        siteNameList.add(title);
+                        String parser = siteUrl + siteObj.getString("parser");
+                        siteCardList.add(new Site(title, list, img, parser));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+        try {
+            thread.start();
+            thread.join();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
     }
 
-    public static List<String> siteNameList = Arrays.asList(
-//            "動漫 - 連載中",
-//            "動漫 - 已完結",
-            "巴哈動畫瘋"
-    );
+
+    public static List<String> siteNameList = new ArrayList<String>();
 
     public static ArrayList<Site> siteCardList = new ArrayList<Site>();
 
     public static String default_fragment_background = "https://wallpaperscraft.com/image/android_red_rocks_backpack_30945_2560x1080.jpg";
+
+    public static String siteUrl = "";
 
     public boolean debugMode = false;
 

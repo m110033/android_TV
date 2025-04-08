@@ -40,6 +40,7 @@ import com.bumptech.glide.load.resource.drawable.GlideDrawable;
 import com.bumptech.glide.request.animation.GlideAnimation;
 import com.bumptech.glide.request.target.SimpleTarget;
 import com.wind.tvplayer.common.BackgoundTask;
+import com.wind.tvplayer.common.ShareData;
 import com.wind.tvplayer.common.ShareVideo;
 //import com.wind.tvplayer.controller.parser.ExoPlayer.PlayerActivity;
 import com.wind.tvplayer.controller.parser.ExoPlayer.PlayerActivity;
@@ -76,10 +77,11 @@ public class VideoDetailsFragment extends DetailsFragment {
         final String site_type = (String) getActivity().getIntent().getSerializableExtra(DetailsActivity.MOVIE_CATEGORY);
         String movie_uuid = (String) getActivity().getIntent().getSerializableExtra(DetailsActivity.MOVIE_UUID);
 
-        ArrayList<Movie> movieList = ShareVideo.getInstance().selectedSite.getMovie_list();
+        ArrayList<Movie> movieList = ShareVideo.selectedSite.getMovie_list();
         for (int i = 0; i < movieList.size(); i++) {
             if (movieList.get(i).getUuid().compareTo(movie_uuid) == 0) {
                 mSelectedMovie = movieList.get(i);
+                break;
             }
         }
 
@@ -89,10 +91,10 @@ public class VideoDetailsFragment extends DetailsFragment {
                 String page_url = mSelectedMovie.getVideoPage();
                 Site sitePageParser = new Site();
                 videoMoviesList = sitePageParser.doParser(page_url, mSelectedMovie);
-                ShareVideo.getInstance().playMovieList.clear();
+                ShareVideo.playMovieList.clear();
                 for(int i = 0; i < videoMoviesList.size(); i++) {
                     PlayMovie playMovie = new PlayMovie();
-                    if (videoMoviesList.get(i).getSiteMovieList().size() > 0) {
+                    if (!videoMoviesList.get(i).getSiteMovieList().isEmpty()) {
                         com.wind.tvplayer.model.video.Site siteMovie = videoMoviesList.get(i).getSiteMovieList().get(0); // For those video only have one site.
                         playMovie.setMovie_title(mSelectedMovie.getTitle());
                         playMovie.setVideo_intro(mSelectedMovie.getDescription());
@@ -100,7 +102,7 @@ public class VideoDetailsFragment extends DetailsFragment {
                         playMovie.setVideo_url(siteMovie.getSiteLink());
                         playMovie.setMovie_categoryIndex(mSelectedMovie.getCategoryIndex());
                         playMovie.setVideo_type(mSelectedMovie.getType());
-                        ShareVideo.getInstance().playMovieList.add(playMovie);
+                        ShareVideo.playMovieList.add(playMovie);
                     }
                 }
             }
@@ -157,8 +159,8 @@ public class VideoDetailsFragment extends DetailsFragment {
                     }
                 });
         ArrayObjectAdapter actionAdapter = new ArrayObjectAdapter();
-        for (int i = 0; i < ShareVideo.getInstance().playMovieList.size(); i++) {
-            PlayMovie playMovie = ShareVideo.getInstance().playMovieList.get(i);
+        for (int i = 0; i < ShareVideo.playMovieList.size(); i++) {
+            PlayMovie playMovie = ShareVideo.playMovieList.get(i);
             actionAdapter.add(new Action(i, playMovie.getVideo_title()));
         }
         row.setActionsAdapter(actionAdapter);

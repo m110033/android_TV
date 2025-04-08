@@ -78,7 +78,7 @@ public class PlayerActivity extends AppCompatActivity {
         // 獲取播放的影片 URL
         Intent intent = getIntent();
         Integer actionIndex = Integer.parseInt(intent.getStringExtra(DetailsActivity.PLAY_MOVIE_INDEX));
-        selectedPlayMovie = ShareVideo.getInstance().playMovieList.get(actionIndex);
+        selectedPlayMovie = ShareVideo.playMovieList.get(actionIndex);
 
         if (savedInstanceState != null) {
             startAutoPlay = savedInstanceState.getBoolean("auto_play");
@@ -173,7 +173,7 @@ public class PlayerActivity extends AppCompatActivity {
             );
 
             Request request = new Request.Builder()
-                    .url("https://video-parser-k1y9.onrender.com/parser/gamer")
+                    .url(ShareVideo.selectedSite.parserUrl)
                     .post(requestBody)
                     .build();
 
