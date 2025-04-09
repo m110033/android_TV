@@ -40,14 +40,12 @@ import com.bumptech.glide.load.resource.drawable.GlideDrawable;
 import com.bumptech.glide.request.animation.GlideAnimation;
 import com.bumptech.glide.request.target.SimpleTarget;
 import com.wind.tvplayer.common.BackgoundTask;
-import com.wind.tvplayer.common.ShareData;
 import com.wind.tvplayer.common.ShareVideo;
 //import com.wind.tvplayer.controller.parser.ExoPlayer.PlayerActivity;
 import com.wind.tvplayer.controller.parser.ExoPlayer.PlayerActivity;
 import com.wind.tvplayer.controller.parser.Site;
 import com.wind.tvplayer.model.video.Movie;
 import com.wind.tvplayer.model.video.PlayMovie;
-import com.wind.tvplayer.model.video.Video;
 import com.wind.tvplayer.model.video.VideoInfo;
 
 import java.util.ArrayList;

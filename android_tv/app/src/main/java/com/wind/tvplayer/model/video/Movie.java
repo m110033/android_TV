@@ -6,7 +6,6 @@ import java.util.ArrayList;
 
 public class Movie {
     public Movie() {
-        this.seasonList = new ArrayList<Season>();
     }
 
     public String getMovieDate() {
@@ -117,14 +116,6 @@ public class Movie {
         this.videoPage = videoPage;
     }
 
-    public ArrayList<Season> getSeasonList() {
-        return seasonList;
-    }
-
-    public void setSeasonList(Season season) {
-        this.seasonList.add(season);
-    }
-
     private String movieDate;
     private long count = 0;
     private long id;
@@ -138,5 +129,4 @@ public class Movie {
     private String studio;
     private String category;
     private String videoPage;
-    private ArrayList<Season> seasonList;
 }
