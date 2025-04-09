@@ -111,6 +111,7 @@ public class VideoFragment extends BrowseFragment {
         com.wind.tvplayer.controller.parser.Site siteClass = new com.wind.tvplayer.controller.parser.Site();
         siteClass.jsonParser(site_link, site_type);
         siteClass.parserUrl = siteObj.getSiteParser();
+        siteClass.infoUrl = siteObj.getSiteInfo();
         ShareVideo.selectedSite = siteClass; // For movieList
 
         // Do Sort

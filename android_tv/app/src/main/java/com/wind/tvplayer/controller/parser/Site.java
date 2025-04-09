@@ -2,14 +2,15 @@ package com.wind.tvplayer.controller.parser;
 
 import com.google.gson.Gson;
 import com.wind.tvplayer.common.ShareData;
+import com.wind.tvplayer.common.ShareVideo;
 import com.wind.tvplayer.model.video.Movie;
-import com.wind.tvplayer.model.video.Video;
+import com.wind.tvplayer.model.video.VideoInfo;
+import com.wind.tvplayer.model.video.VideoResponse;
 
 import org.apache.commons.lang3.StringEscapeUtils;
-
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -19,6 +20,10 @@ public class Site {
 
     public ArrayList<Movie> getMovie_list() {
         return movie_list;
+    }
+
+    public void setMovie_list(ArrayList<Movie> movie_list) {
+        this.movie_list = movie_list;
     }
 
     private ArrayList<Movie> movie_list = new ArrayList<Movie>();
@@ -67,98 +72,25 @@ public class Site {
         }
     }
 
-    public ArrayList<Video> doParser(String i_url, Movie movie) {
+    public ArrayList<VideoInfo> doParser(String i_url, Movie movie) {
+        ArrayList<VideoInfo> movie_list = new ArrayList<VideoInfo>();
+
         try {
-            URL url = new URL(i_url);
-            String domain = url.getHost();
-            return (domain.indexOf("myself-bbs") >= 0) ? myselfParser(i_url, movie) :
-                    (domain.indexOf("gamer") >= 0) ? gamerParser(i_url, movie) : new ArrayList<Video>();
-        } catch (MalformedURLException e) {
+            // Step 1: 準備 POST 請求參數
+            Map<String, String> postParams = new HashMap<>();
+            postParams.put("url", i_url);
+
+            // Step 2: 發送 POST 請求
+            String jsonStr = ShareData.getInstance().doPostJson(ShareVideo.selectedSite.infoUrl, postParams);
+
+            // Step 3: 解析回傳結果
+            Gson gson = new Gson();
+            VideoResponse videoResponse = gson.fromJson(jsonStr, VideoResponse.class);
+            movie_list = videoResponse.getVideoList();
+        } catch (Exception e) {
             e.printStackTrace();
         }
-        return new ArrayList<Video>();
-    }
 
-    private ArrayList<Video> myselfParser(String url, Movie movie) {
-        String html = ShareData.getInstance().GetHttps(url, false);
-        String intro = ShareData.getInstance().str_between(html, "<div id=\"info_introduction_text\" style=\"display:none;\">", "</div>");
-        movie.setDescription(intro);
-
-        String htmlCode = ShareData.getInstance().str_between(html, "<ul class=\"main_list\"><li>", "</div>");
-        String[] videoBlock = htmlCode.split("<a href=\"javascript:;\"");
-        ArrayList<Video> VideosList = new ArrayList<Video>();
-
-        if (videoBlock.length >= 1) {
-            for (int i = 1; i < videoBlock.length; i++) {
-                String cur_video_html = videoBlock[i];
-                String video_title = ShareData.getInstance().str_between(cur_video_html, ">", "</a>");
-                Pattern pattern = Pattern.compile("data-href=\"(.*?)\r\" target=\"_blank\" class=\"(.*?)\">(.*?)</a></li>");
-                Matcher matcher = pattern.matcher(cur_video_html);
-
-                // Get all video
-                Video Video = new Video();
-                while (matcher.find()) {
-                    com.wind.tvplayer.model.video.Site siteMovie = new com.wind.tvplayer.model.video.Site();
-                    String video_site_link = matcher.group(1).trim();
-                    String video_site_class = matcher.group(2).trim();
-                    String video_site_name = matcher.group(3).trim();
-                    video_site_name = ShareData.getInstance().stripHtml(video_site_name);
-                    if (video_site_name.compareTo("站內") == 0) {
-                        siteMovie.setSiteName(video_site_name);
-                        siteMovie.setSiteLink(video_site_link);
-                        Video.setSiteMovieList(siteMovie);
-                    }
-                }
-
-                Video.setVideoTitle(video_title);
-                VideosList.add(Video);
-            }
-        }
-
-        return VideosList;
-    }
-
-    private ArrayList<Video> gamerParser(String url, Movie movie) {
-        String html = ShareData.getInstance().GetHttps(url, false);
-        String htmlCode = ShareData.getInstance().str_between(html, "<div class=\"anime_name\">", "<div class=\"link\">");
-        String intro = ShareData.getInstance().str_between(htmlCode, "<div class='data_intro'>", "<div class=\"link\">").trim();
-        intro = ShareData.getInstance().stripHtml(intro);
-        movie.setDescription(intro);
-        String videoHtml = ShareData.getInstance().str_between(htmlCode, "<section class=\"season\">", "</section>").trim();
-
-        ArrayList<Video> videoMoviesList = new ArrayList<>();
-        Pattern pattern = Pattern.compile("href=\"(.*?)\">(.*?)</a>");
-        Matcher matcher = pattern.matcher(videoHtml);
-
-// 偵測是否有找到其他影片連結
-        boolean hasMatch = false;
-
-        while (matcher.find()) {
-            hasMatch = true;
-            Video videoMovie = new Video();
-            com.wind.tvplayer.model.video.Site siteMovie = new com.wind.tvplayer.model.video.Site();
-
-            String video_url = "http://ani.gamer.com.tw/animeVideo.php" + matcher.group(1);
-            String video_title = matcher.group(2).trim();
-
-            siteMovie.setSiteName("gamer");
-            siteMovie.setSiteLink(video_url);
-            videoMovie.setSiteMovieList(siteMovie);
-            videoMovie.setVideoTitle(video_title);
-            videoMoviesList.add(videoMovie);
-        }
-
-// 若沒有其他影片連結，就加入目前這一部影片
-        if (!hasMatch) {
-            Video currentVideo = new Video();
-            com.wind.tvplayer.model.video.Site siteMovie = new com.wind.tvplayer.model.video.Site();
-            siteMovie.setSiteName("gamer");
-            siteMovie.setSiteLink(url);
-            currentVideo.setSiteMovieList(siteMovie);
-            currentVideo.setVideoTitle("1");
-            videoMoviesList.add(currentVideo);
-        }
-
-        return videoMoviesList;
+        return movie_list != null ? movie_list : new ArrayList<>();
     }
 }

@@ -48,6 +48,7 @@ import com.wind.tvplayer.controller.parser.Site;
 import com.wind.tvplayer.model.video.Movie;
 import com.wind.tvplayer.model.video.PlayMovie;
 import com.wind.tvplayer.model.video.Video;
+import com.wind.tvplayer.model.video.VideoInfo;
 
 import java.util.ArrayList;
 import java.util.Objects;
@@ -63,7 +64,7 @@ public class VideoDetailsFragment extends DetailsFragment {
 
     private Movie mSelectedMovie;
     private BackgoundTask backgoundTask;
-    private ArrayList<Video> videoMoviesList = null;
+    private ArrayList<VideoInfo> videoMoviesList = null;
     private ArrayObjectAdapter mAdapter;
     private ClassPresenterSelector mPresenterSelector;
 
@@ -94,16 +95,14 @@ public class VideoDetailsFragment extends DetailsFragment {
                 ShareVideo.playMovieList.clear();
                 for(int i = 0; i < videoMoviesList.size(); i++) {
                     PlayMovie playMovie = new PlayMovie();
-                    if (!videoMoviesList.get(i).getSiteMovieList().isEmpty()) {
-                        com.wind.tvplayer.model.video.Site siteMovie = videoMoviesList.get(i).getSiteMovieList().get(0); // For those video only have one site.
-                        playMovie.setMovie_title(mSelectedMovie.getTitle());
-                        playMovie.setVideo_intro(mSelectedMovie.getDescription());
-                        playMovie.setVideo_title(videoMoviesList.get(i).getVideoTitle());
-                        playMovie.setVideo_url(siteMovie.getSiteLink());
-                        playMovie.setMovie_categoryIndex(mSelectedMovie.getCategoryIndex());
-                        playMovie.setVideo_type(mSelectedMovie.getType());
-                        ShareVideo.playMovieList.add(playMovie);
-                    }
+                    VideoInfo videoInfo = videoMoviesList.get(i);
+                    playMovie.setMovie_title(mSelectedMovie.getTitle());
+                    playMovie.setVideo_intro(mSelectedMovie.getDescription());
+                    playMovie.setVideo_title(videoInfo.getTitle());
+                    playMovie.setVideo_url(videoInfo.getVideoUrl());
+                    playMovie.setMovie_categoryIndex(mSelectedMovie.getCategoryIndex());
+                    playMovie.setVideo_type(mSelectedMovie.getType());
+                    ShareVideo.playMovieList.add(playMovie);
                 }
             }
         });
