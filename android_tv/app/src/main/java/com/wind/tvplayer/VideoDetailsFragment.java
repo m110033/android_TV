@@ -41,11 +41,12 @@ import com.bumptech.glide.request.animation.GlideAnimation;
 import com.bumptech.glide.request.target.SimpleTarget;
 import com.wind.tvplayer.common.BackgoundTask;
 import com.wind.tvplayer.common.ShareVideo;
+//import com.wind.tvplayer.controller.parser.ExoPlayer.PlayerActivity;
 import com.wind.tvplayer.controller.parser.ExoPlayer.PlayerActivity;
 import com.wind.tvplayer.controller.parser.Site;
 import com.wind.tvplayer.model.video.Movie;
 import com.wind.tvplayer.model.video.PlayMovie;
-import com.wind.tvplayer.model.video.Video;
+import com.wind.tvplayer.model.video.VideoInfo;
 
 import java.util.ArrayList;
 import java.util.Objects;
@@ -61,7 +62,7 @@ public class VideoDetailsFragment extends DetailsFragment {
 
     private Movie mSelectedMovie;
     private BackgoundTask backgoundTask;
-    private ArrayList<Video> videoMoviesList = null;
+    private ArrayList<VideoInfo> videoMoviesList = null;
     private ArrayObjectAdapter mAdapter;
     private ClassPresenterSelector mPresenterSelector;
 
@@ -75,10 +76,11 @@ public class VideoDetailsFragment extends DetailsFragment {
         final String site_type = (String) getActivity().getIntent().getSerializableExtra(DetailsActivity.MOVIE_CATEGORY);
         String movie_uuid = (String) getActivity().getIntent().getSerializableExtra(DetailsActivity.MOVIE_UUID);
 
-        ArrayList<Movie> movieList = ShareVideo.getInstance().selectedSite.getMovie_list();
+        ArrayList<Movie> movieList = ShareVideo.selectedSite.getMovie_list();
         for (int i = 0; i < movieList.size(); i++) {
             if (movieList.get(i).getUuid().compareTo(movie_uuid) == 0) {
                 mSelectedMovie = movieList.get(i);
+                break;
             }
         }
 
@@ -88,19 +90,17 @@ public class VideoDetailsFragment extends DetailsFragment {
                 String page_url = mSelectedMovie.getVideoPage();
                 Site sitePageParser = new Site();
                 videoMoviesList = sitePageParser.doParser(page_url, mSelectedMovie);
-                ShareVideo.getInstance().playMovieList.clear();
+                ShareVideo.playMovieList.clear();
                 for(int i = 0; i < videoMoviesList.size(); i++) {
                     PlayMovie playMovie = new PlayMovie();
-                    if (videoMoviesList.get(i).getSiteMovieList().size() > 0) {
-                        com.wind.tvplayer.model.video.Site siteMovie = videoMoviesList.get(i).getSiteMovieList().get(0); // For those video only have one site.
-                        playMovie.setMovie_title(mSelectedMovie.getTitle());
-                        playMovie.setVideo_intro(mSelectedMovie.getDescription());
-                        playMovie.setVideo_title(videoMoviesList.get(i).getVideoTitle());
-                        playMovie.setVideo_url(siteMovie.getSiteLink());
-                        playMovie.setMovie_categoryIndex(mSelectedMovie.getCategoryIndex());
-                        playMovie.setVideo_type(mSelectedMovie.getType());
-                        ShareVideo.getInstance().playMovieList.add(playMovie);
-                    }
+                    VideoInfo videoInfo = videoMoviesList.get(i);
+                    playMovie.setMovie_title(mSelectedMovie.getTitle());
+                    playMovie.setVideo_intro(mSelectedMovie.getDescription());
+                    playMovie.setVideo_title(videoInfo.getTitle());
+                    playMovie.setVideo_url(videoInfo.getVideoUrl());
+                    playMovie.setMovie_categoryIndex(mSelectedMovie.getCategoryIndex());
+                    playMovie.setVideo_type(mSelectedMovie.getType());
+                    ShareVideo.playMovieList.add(playMovie);
                 }
             }
         });
@@ -156,8 +156,8 @@ public class VideoDetailsFragment extends DetailsFragment {
                     }
                 });
         ArrayObjectAdapter actionAdapter = new ArrayObjectAdapter();
-        for (int i = 0; i < ShareVideo.getInstance().playMovieList.size(); i++) {
-            PlayMovie playMovie = ShareVideo.getInstance().playMovieList.get(i);
+        for (int i = 0; i < ShareVideo.playMovieList.size(); i++) {
+            PlayMovie playMovie = ShareVideo.playMovieList.get(i);
             actionAdapter.add(new Action(i, playMovie.getVideo_title()));
         }
         row.setActionsAdapter(actionAdapter);
@@ -208,15 +208,15 @@ public class VideoDetailsFragment extends DetailsFragment {
                 Action action = (Action) item;
                 String actionIndex = Objects.toString(action.getId(), null);
                 Intent intent = new Intent(getActivity(), PlayerActivity.class);
-                intent.putExtra(
-                        PlayerActivity.PREFER_EXTENSION_DECODERS_EXTRA,
-                        isNonNullAndChecked(preferExtensionDecodersMenuItem));
-                String abrAlgorithm =
-                        isNonNullAndChecked(randomAbrMenuItem)
-                                ? PlayerActivity.ABR_ALGORITHM_RANDOM
-                                : PlayerActivity.ABR_ALGORITHM_DEFAULT;
-                intent.putExtra(PlayerActivity.ABR_ALGORITHM_EXTRA, abrAlgorithm);
-                intent.putExtra(PlayerActivity.TUNNELING_EXTRA, isNonNullAndChecked(tunnelingMenuItem));
+//                intent.putExtra(
+//                        PlayerActivity.PREFER_EXTENSION_DECODERS_EXTRA,
+//                        isNonNullAndChecked(preferExtensionDecodersMenuItem));
+//                String abrAlgorithm =
+//                        isNonNullAndChecked(randomAbrMenuItem)
+//                                ? PlayerActivity.ABR_ALGORITHM_RANDOM
+//                                : PlayerActivity.ABR_ALGORITHM_DEFAULT;
+//                intent.putExtra(PlayerActivity.ABR_ALGORITHM_EXTRA, abrAlgorithm);
+//                intent.putExtra(PlayerActivity.TUNNELING_EXTRA, isNonNullAndChecked(tunnelingMenuItem));
                 intent.putExtra(DetailsActivity.PLAY_MOVIE_INDEX, actionIndex);
                 startActivity(intent);
             }

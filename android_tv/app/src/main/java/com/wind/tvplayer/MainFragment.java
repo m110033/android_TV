@@ -59,13 +59,14 @@ public class MainFragment extends VerticalGridFragment {
         gridPresenter.setNumberOfColumns(NUM_COLUMNS);
         setGridPresenter(gridPresenter);
         mAdapter = new ArrayObjectAdapter(new CardPresenter());
-        for (int i = 0; i < ShareData.getInstance().siteCardList.size(); i++) {
-            Site siteCard = ShareData.getInstance().siteCardList.get(i);
+        for (int i = 0; i < ShareData.siteCardList.size(); i++) {
+            Site siteCard = ShareData.siteCardList.get(i);
             MovieCard movieCard = new MovieCard();
             movieCard.setTitle(siteCard.getSiteName());
             movieCard.setSub_title("");
             movieCard.setImg(siteCard.getSiteImgLink());
             movieCard.setMoveIndex(i);
+            movieCard.setParserUrl(siteCard.getSiteParser());
             mAdapter.add(movieCard);
         }
         setAdapter(mAdapter);
@@ -131,11 +132,17 @@ public class MainFragment extends VerticalGridFragment {
         public void setMoveIndex(int moveIndex) {
             this.moveIndex = moveIndex;
         }
-
+        public String getParserUrl() {
+            return parserUrl;
+        }
+        public void setParserUrl(String parserUrl) {
+            this.parserUrl = parserUrl;
+        }
         private int moveIndex;
         private String title;
         private String sub_title;
         private String img;
+        private  String parserUrl;
     }
 
     private class CardPresenter extends Presenter {
